@@ -484,6 +484,19 @@ install_bashrc_support() {
 
 			# Install the downloaded deb file using apt-get
 			sudo apt-get install /tmp/fastfetch_latest_amd64.deb
+
+			# Fetch the latest ble.sh nightly release URL
+			BLE_SH_URL=$(curl -s https://api.github.com/repos/akinomyoga/ble.sh/releases/latest | grep "browser_download_url.*nightly.tar.xz" | cut -d '"' -f 4)
+
+			# Download and extract the latest ble.sh nightly tarball
+			curl -sL $BLE_SH_URL | tar xJf - -C /tmp
+
+			# Install ble.sh to the local share directory
+			bash /tmp/ble-nightly/ble.sh --install ~/.local/share
+
+			# Clean up temporary files
+			rm -rf /tmp/ble-nightly
+			
 			;;
 		"arch")
 			sudo paru multitail tree zoxide trash-cli fzf bash-completion fastfetch
@@ -631,3 +644,6 @@ export PATH=$PATH:"$HOME/.local/bin:$HOME/.cargo/bin:/var/lib/flatpak/exports/bi
 
 eval "$(starship init bash)"
 eval "$(zoxide init bash)"
+
+# Source the blesh script
+source ~/.local/share/blesh/ble.sh
