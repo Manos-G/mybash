@@ -176,6 +176,7 @@ alias lla='ls -Al'                # List and Hidden Files
 alias las='ls -A'                 # Hidden Files
 alias lls='ls -l'                 # List
 
+
 # alias chmod commands
 alias mx='chmod a+x'
 alias 000='chmod -R 000'
@@ -496,7 +497,7 @@ install_bashrc_support() {
 
 			# Clean up temporary files
 			rm -rf /tmp/ble-nightly
-			
+
 			;;
 		"arch")
 			sudo paru multitail tree zoxide trash-cli fzf bash-completion fastfetch
@@ -647,3 +648,6 @@ eval "$(zoxide init bash)"
 
 # Source the blesh script
 source ~/.local/share/blesh/ble.sh
+
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'

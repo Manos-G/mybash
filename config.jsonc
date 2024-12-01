@@ -4,12 +4,12 @@
         "type": "builtin",
         "color": {
             "1": "white",
-            "2": "cyan"
+            "2": "red"
         }
     },
     "display": {
         "separator": "   ",
-        "color": "cyan"
+        "color": "red"
     },
     "modules": [
         {
@@ -60,7 +60,7 @@
         },
         {
             "type": "custom",
-            "format": "|──────────────\u001b[1mUptime / Age\u001b[0m──────────────────|"
+            "format": "|───────────── \u001b[1mUptime / Age\u001b[0m ─────────────────|"
         },
         {
             "type": "command",
