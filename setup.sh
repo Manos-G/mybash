@@ -17,7 +17,7 @@ fi
 if [ -d "$LINUXTOOLBOXDIR/mybash" ]; then rm -rf "$LINUXTOOLBOXDIR/mybash"; fi
 
 echo "${YELLOW}Cloning mybash repository into: $LINUXTOOLBOXDIR/mybash${RC}"
-git clone https://github.com/ChrisTitusTech/mybash "$LINUXTOOLBOXDIR/mybash"
+git clone git@github.com:Manos-G/mybash.git "$LINUXTOOLBOXDIR/mybash"
 if [ $? -eq 0 ]; then
     echo "${GREEN}Successfully cloned mybash repository${RC}"
 else
@@ -167,16 +167,15 @@ installDepend() {
 installStarshipAndFzf() {
     if command_exists starship; then
         echo "Starship already installed"
-        return
-    fi
-
-    if ! curl -sS https://starship.rs/install.sh | sh; then
+    elif
+        ! curl -sS https://starship.rs/install.sh | sh; then
         echo "${RED}Something went wrong during starship install!${RC}"
         exit 1
     fi
     if command_exists fzf; then
         echo "Fzf already installed"
     else
+        echo "Fzf not installed, installing..."
         git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
         ~/.fzf/install
     fi
