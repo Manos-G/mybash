@@ -675,3 +675,4 @@ source ~/common_ws/install/setup.bash
 source ~/microros_ws/install/setup.bash
 
 ROS_DISTRO=humble
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
