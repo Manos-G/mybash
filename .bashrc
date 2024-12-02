@@ -176,6 +176,22 @@ alias lla='ls -Al'                # List and Hidden Files
 alias las='ls -A'                 # Hidden Files
 alias lls='ls -l'                 # List
 
+# alias ros2 commands
+
+alias si='source install/setup.bash'
+alias so='source /opt/ros/humble/setup.bash'
+
+alias cb='colcon build'
+alias cbs='colcon build --symlink-install'
+alias cbp='colcon build --packages-select'
+
+alias cl='rm -rf install build log'
+
+alias tl='ros2 topic list'
+alias te='ros2 topic echo'
+
+alias run='ros2 run'
+alias la='ros2 launch'
 
 # alias chmod commands
 alias mx='chmod a+x'
@@ -647,7 +663,15 @@ eval "$(starship init bash)"
 eval "$(zoxide init bash)"
 
 # Source the blesh script
-source ~/.local/share/blesh/ble.sh
+# source ~/.local/share/blesh/ble.sh
+# source ~/.blerc
 
 bind '"\e[A": history-search-backward'
 bind '"\e[B": history-search-forward'
+
+# Source the ros2 and setup variables
+source /opt/ros/humble/setup.bash
+source ~/common_ws/install/setup.bash
+source ~/microros_ws/install/setup.bash
+
+ROS_DISTRO=humble
