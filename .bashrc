@@ -666,8 +666,11 @@ eval "$(zoxide init bash)"
 # source ~/.local/share/blesh/ble.sh
 # source ~/.blerc
 
-bind '"\e[A": history-search-backward'
-bind '"\e[B": history-search-forward'
+if [[ $- == *i* ]]; then
+    bind '"\e[A": history-search-backward'
+    bind '"\e[B": history-search-forward'
+fi
+
 
 # Source the ros2 and setup variables
 source /opt/ros/humble/setup.bash
@@ -675,4 +678,6 @@ source ~/common_ws/install/setup.bash
 source ~/microros_ws/install/setup.bash
 
 ROS_DISTRO=humble
+
 [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+export PICO_SDK_PATH=/home/manos/pico-sdk
