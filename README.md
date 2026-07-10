@@ -8,6 +8,11 @@ sudo apt install fzf
 
 
 
+## Custom Commands
+
+See **[COMMANDS.md](COMMANDS.md)** for a full reference of every custom alias
+and function (navigation, eza listing, git, ROS 2, and more).
+
 ## Overview of ChrisTitusTech's `.bashrc` Configuration
 
 The `.bashrc` file is a script that runs every time a new terminal session is started in Unix-like operating systems. It is used to configure the shell session, set up aliases, define functions, and more, making the terminal easier to use and more powerful. Below is a summary of the key sections and functionalities defined in the provided `.bashrc` file.
