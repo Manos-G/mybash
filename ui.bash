@@ -41,3 +41,12 @@ fi
 
 eval "$(starship init bash)"
 eval "$(zoxide init bash)"
+
+# Enable fzf keybindings for Bash (including Ctrl+R for history)
+if [ -f /usr/share/fzf/key-bindings.bash ]; then
+    source /usr/share/fzf/key-bindings.bash
+elif [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+    source /usr/share/doc/fzf/examples/key-bindings.bash
+elif [ -f ~/.fzf.bash ]; then
+    source ~/.fzf.bash
+fi

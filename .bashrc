@@ -51,5 +51,3 @@ for module in functions aliases history ui git ros2; do
 done
 
 unset module
-
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash

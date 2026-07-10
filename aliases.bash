@@ -158,6 +158,9 @@ alias clickpaste='sleep 3; xdotool type "$(xclip -o -selection clipboard)"'
 
 alias kssh="kitty +kitten ssh"
 
+# Zellij terminal multiplexer
+alias zz='zellij'
+
 # alias to cleanup unused docker containers, images, networks, and volumes
 
 alias docker-clean=' \
