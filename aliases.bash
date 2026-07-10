@@ -106,6 +106,7 @@ if command -v eza &> /dev/null; then
 	alias lf='ls -la --only-files'            # files only
 	alias ldir='ls -la --only-dirs'           # directories only
 else
+	echo "eza is missing - falling back to ls (install it or run setup.sh)"
 	alias la='ls -Alh'                # show hidden files
 	alias ls='ls -aFh --color=always' # add colors and file type extensions
 	alias lx='ls -lXBh'               # sort by extension
