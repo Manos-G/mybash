@@ -96,13 +96,13 @@ up() {
 	cd $d
 }
 
-# Automatically do an ls after each cd, z, or zoxide
+# Automatically do a listing after each cd, z, or zoxide
 cd ()
 {
 	if [ -n "$1" ]; then
-		builtin cd "$@" && ls
+		builtin cd "$@" && eza --color=always --group-directories-first --icons
 	else
-		builtin cd ~ && ls
+		builtin cd ~ && eza --color=always --group-directories-first --icons
 	fi
 }
 
