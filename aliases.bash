@@ -114,6 +114,9 @@ alias 777='chmod -R 777'
 alias p="ps aux | grep "
 alias topcpu="/bin/ps -eo pcpu,pid,user,args | sort -k 1 -r | head -10"
 
+# Use btop as the system monitor
+alias top='btop'
+
 # Search files in the current folder
 alias f="find . | grep "
 
