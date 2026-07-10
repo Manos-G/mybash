@@ -5,7 +5,7 @@
 
 # Expand the history size
 export HISTFILESIZE=10000
-export HISTSIZE=500
+export HISTSIZE=1500
 export HISTTIMEFORMAT="%F %T" # add timestamp to history
 
 # Don't put duplicate lines in the history and do not add lines that start with a space
