@@ -164,6 +164,9 @@ alias kssh="kitty +kitten ssh"
 # Zellij terminal multiplexer
 alias zz='zellij'
 
+# Yazi terminal file manager
+alias yz='yazi'
+
 # alias to cleanup unused docker containers, images, networks, and volumes
 
 alias docker-clean=' \
