@@ -3,10 +3,13 @@
 # ROS2
 #######################################################
 
+# ROS 2 distribution
+export ROS_DISTRO=humble
+
 # alias ros2 commands
 
 alias si='source install/setup.bash'
-alias so='source /opt/ros/humble/setup.bash'
+alias so="source /opt/ros/$ROS_DISTRO/setup.bash"
 
 alias cb='colcon build'
 alias cbs='colcon build --symlink-install'
@@ -26,11 +29,9 @@ killros() {
 }
 
 # Source the ros2 and setup variables
-source /opt/ros/humble/setup.bash
+source /opt/ros/"$ROS_DISTRO"/setup.bash
 source ~/common_ws/install/setup.bash
 source ~/microros_ws/install/setup.bash
-
-ROS_DISTRO=humble
 
 # Load the permanent ROS_DOMAIN_ID selected during setup
 [ -f ~/.ros_domain_id ] && source ~/.ros_domain_id
