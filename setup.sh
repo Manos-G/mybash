@@ -244,6 +244,48 @@ installYazi() {
     fi
 }
 
+installEza() {
+    if command_exists eza; then
+        echo "Eza already installed"
+        return
+    fi
+
+    echo "${YELLOW}Installing eza...${RC}"
+    case "$PACKAGER" in
+        pacman)
+            if command_exists yay; then
+                yay --noconfirm -S eza || true
+            elif command_exists paru; then
+                paru --noconfirm -S eza || true
+            else
+                ${SUDO_CMD} ${PACKAGER} --noconfirm -S eza || true
+            fi
+            ;;
+        emerge)
+            ${SUDO_CMD} ${PACKAGER} -v sys-apps/eza || true
+            ;;
+        nix-env)
+            ${SUDO_CMD} ${PACKAGER} -iA nixos.eza || true
+            ;;
+        nala|dnf)
+            ${SUDO_CMD} ${PACKAGER} install -y eza || true
+            ;;
+        *)
+            ${SUDO_CMD} ${PACKAGER} install -yq eza || true
+            ;;
+    esac
+
+    ## Fall back to cargo if the package manager didn't provide eza.
+    if ! command_exists eza; then
+        echo "${YELLOW}Eza not available from package manager, installing via cargo...${RC}"
+        if ! command_exists cargo; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            . "$HOME/.cargo/env"
+        fi
+        cargo install eza
+    fi
+}
+
 installLazygit() {
     if command_exists lazygit; then
         echo "Lazygit already installed"
@@ -377,6 +419,7 @@ checkEnv
 installDepend
 installYakuake
 installYazi
+installEza
 installLazygit
 installLazydocker
 installStarshipAndFzf

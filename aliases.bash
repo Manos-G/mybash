@@ -83,24 +83,26 @@ alias bd='cd "$OLDPWD"'
 # Remove a directory and all files
 alias rmd='/bin/rm  --recursive --force --verbose '
 
-# Alias's for multiple directory listing commands
-alias la='ls -Alh'                # show hidden files
-alias ls='ls -aFh --color=always' # add colors and file type extensions
-alias lx='ls -lXBh'               # sort by extension
-alias lk='ls -lSrh'               # sort by size
-alias lc='ls -ltcrh'              # sort by change time
-alias lu='ls -lturh'              # sort by access time
-alias lr='ls -lRh'                # recursive ls
-alias lt='ls -ltrh'               # sort by date
-alias lm='ls -alh |more'          # pipe through 'more'
-alias lw='ls -xAh'                # wide listing format
-alias ll='ls -Fls'                # long listing format
-alias labc='ls -lap'              # alphabetical sort
-alias lf="ls -l | egrep -v '^d'"  # files only
-alias ldir="ls -l | egrep '^d'"   # directories only
-alias lla='ls -Al'                # List and Hidden Files
-alias las='ls -A'                 # Hidden Files
-alias lls='ls -l'                 # List
+# Alias's for multiple directory listing commands (eza, a modern ls)
+# The l* aliases below start with `ls`, which bash re-expands to the eza
+# base command, so each one inherits the color/icons/group-dirs options.
+alias ls='eza --color=always --group-directories-first --icons' # base: colors, icons, dirs first
+alias la='ls -a'                          # show hidden files
+alias ll='ls -la'                         # long listing, all files
+alias lla='ls -la'                        # long listing, all files
+alias las='ls -A'                         # hidden files (excluding . and ..)
+alias lls='ls -l'                         # long listing
+alias lx='ls -la --sort=extension'        # sort by extension
+alias lk='ls -la --sort=size --reverse'   # sort by size
+alias lc='ls -la --sort=changed --reverse' # sort by change time
+alias lu='ls -la --sort=accessed --reverse' # sort by access time
+alias lt='ls -la --sort=modified --reverse' # sort by date
+alias labc='ls -la --sort=name'           # alphabetical sort
+alias lr='ls -la --recurse'               # recursive ls
+alias lw='ls --across'                    # wide (grid across) format
+alias lm='ls -la | more'                  # pipe through 'more'
+alias lf='ls -la --only-files'            # files only
+alias ldir='ls -la --only-dirs'           # directories only
 
 # alias chmod commands
 alias mx='chmod a+x'
