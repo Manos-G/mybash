@@ -244,6 +244,31 @@ installYazi() {
     fi
 }
 
+installLazygit() {
+    if command_exists lazygit; then
+        echo "Lazygit already installed"
+        return
+    fi
+
+    echo "${YELLOW}Installing lazygit...${RC}"
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+    TEMP_DIR=$(mktemp -d)
+    curl -Lo "$TEMP_DIR/lazygit.tar.gz" "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf "$TEMP_DIR/lazygit.tar.gz" -C "$TEMP_DIR" lazygit
+    ${SUDO_CMD} install "$TEMP_DIR/lazygit" /usr/local/bin
+    rm -rf "$TEMP_DIR"
+}
+
+installLazydocker() {
+    if command_exists lazydocker; then
+        echo "Lazydocker already installed"
+        return
+    fi
+
+    echo "${YELLOW}Installing lazydocker...${RC}"
+    curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+}
+
 installStarshipAndFzf() {
     if command_exists starship; then
         echo "Starship already installed"
@@ -352,6 +377,8 @@ checkEnv
 installDepend
 installYakuake
 installYazi
+installLazygit
+installLazydocker
 installStarshipAndFzf
 installZoxide
 install_additional_dependencies
