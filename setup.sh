@@ -99,7 +99,7 @@ checkEnv() {
 
 installDepend() {
     ## Check for dependencies.
-    DEPENDENCIES='bash bash-completion tar bat tree multitail fastfetch wget unzip fontconfig btop'
+    DEPENDENCIES='bash bash-completion tar bat tree multitail wget unzip fontconfig btop'
     if ! command_exists nvim; then
         DEPENDENCIES="${DEPENDENCIES} neovim"
     fi
@@ -242,6 +242,47 @@ installYazi() {
         fi
         cargo install --locked yazi-fm yazi-cli
     fi
+}
+
+installFastfetch() {
+    if command_exists fastfetch; then
+        echo "Fastfetch already installed"
+        return
+    fi
+
+    echo "${YELLOW}Installing fastfetch...${RC}"
+    case "$PACKAGER" in
+        apt|nala)
+            ## Not in older Debian/Ubuntu repos, grab the latest .deb from GitHub.
+            FASTFETCH_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep "browser_download_url.*linux-amd64.deb" | cut -d '"' -f 4)
+            if [ -n "$FASTFETCH_URL" ]; then
+                TEMP_DIR=$(mktemp -d)
+                curl -sL "$FASTFETCH_URL" -o "$TEMP_DIR/fastfetch.deb"
+                ${SUDO_CMD} apt-get install -y "$TEMP_DIR/fastfetch.deb" || ${SUDO_CMD} dpkg -i "$TEMP_DIR/fastfetch.deb"
+                rm -rf "$TEMP_DIR"
+            else
+                echo "${RED}Could not determine fastfetch download URL${RC}"
+            fi
+            ;;
+        pacman)
+            if command_exists yay; then
+                yay --noconfirm -S fastfetch || true
+            elif command_exists paru; then
+                paru --noconfirm -S fastfetch || true
+            else
+                ${SUDO_CMD} ${PACKAGER} --noconfirm -S fastfetch || true
+            fi
+            ;;
+        emerge)
+            ${SUDO_CMD} ${PACKAGER} -v app-misc/fastfetch || true
+            ;;
+        nix-env)
+            ${SUDO_CMD} ${PACKAGER} -iA nixos.fastfetch || true
+            ;;
+        *)
+            ${SUDO_CMD} ${PACKAGER} install -y fastfetch || true
+            ;;
+    esac
 }
 
 installEza() {
@@ -440,6 +481,7 @@ configureRosDomainId() {
 checkEnv
 installDepend
 configureRosDomainId
+installFastfetch
 installYakuake
 installYazi
 installEza
