@@ -164,6 +164,44 @@ installDepend() {
     fi
 }
 
+installYakuake() {
+    ## Only install yakuake on KDE Plasma desktops.
+    if ! echo "${XDG_CURRENT_DESKTOP}${DESKTOP_SESSION}" | grep -qiE 'kde|plasma' && ! command_exists plasmashell; then
+        echo "KDE not detected, skipping yakuake."
+        return
+    fi
+
+    if command_exists yakuake; then
+        echo "Yakuake already installed"
+        return
+    fi
+
+    echo "${YELLOW}KDE detected, installing yakuake...${RC}"
+    case "$PACKAGER" in
+        pacman)
+            if command_exists yay; then
+                yay --noconfirm -S yakuake
+            elif command_exists paru; then
+                paru --noconfirm -S yakuake
+            else
+                ${SUDO_CMD} ${PACKAGER} --noconfirm -S yakuake
+            fi
+            ;;
+        emerge)
+            ${SUDO_CMD} ${PACKAGER} -v kde-apps/yakuake
+            ;;
+        nix-env)
+            ${SUDO_CMD} ${PACKAGER} -iA nixos.yakuake
+            ;;
+        nala|dnf)
+            ${SUDO_CMD} ${PACKAGER} install -y yakuake
+            ;;
+        *)
+            ${SUDO_CMD} ${PACKAGER} install -yq yakuake
+            ;;
+    esac
+}
+
 installStarshipAndFzf() {
     if command_exists starship; then
         echo "Starship already installed"
@@ -270,6 +308,7 @@ linkConfig() {
 
 checkEnv
 installDepend
+installYakuake
 installStarshipAndFzf
 installZoxide
 install_additional_dependencies
