@@ -415,8 +415,31 @@ linkConfig() {
     }
 }
 
+configureRosDomainId() {
+    ## Ask the user for a permanent ROS_DOMAIN_ID and persist it so every
+    ## shell picks it up (ros2.bash sources ~/.ros_domain_id).
+    USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+    ROS_ID_FILE="$USER_HOME/.ros_domain_id"
+
+    printf "%bSelect your permanent ROS_DOMAIN_ID [0-232, default 0]: %b" "$YELLOW" "$RC"
+    read -r ROS_DOMAIN_ID_INPUT || ROS_DOMAIN_ID_INPUT=""
+
+    if [ -z "$ROS_DOMAIN_ID_INPUT" ]; then
+        ROS_DOMAIN_ID_INPUT=0
+    fi
+
+    if ! echo "$ROS_DOMAIN_ID_INPUT" | grep -qE '^[0-9]+$' || [ "$ROS_DOMAIN_ID_INPUT" -gt 232 ]; then
+        echo "${RED}Invalid ROS_DOMAIN_ID '$ROS_DOMAIN_ID_INPUT', defaulting to 0${RC}"
+        ROS_DOMAIN_ID_INPUT=0
+    fi
+
+    echo "export ROS_DOMAIN_ID=$ROS_DOMAIN_ID_INPUT" > "$ROS_ID_FILE"
+    echo "${GREEN}ROS_DOMAIN_ID set to $ROS_DOMAIN_ID_INPUT (saved to $ROS_ID_FILE)${RC}"
+}
+
 checkEnv
 installDepend
+configureRosDomainId
 installYakuake
 installYazi
 installEza

@@ -31,3 +31,6 @@ source ~/common_ws/install/setup.bash
 source ~/microros_ws/install/setup.bash
 
 ROS_DISTRO=humble
+
+# Load the permanent ROS_DOMAIN_ID selected during setup
+[ -f ~/.ros_domain_id ] && source ~/.ros_domain_id
