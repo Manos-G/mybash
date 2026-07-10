@@ -44,7 +44,7 @@ export PICO_SDK_PATH=/home/manos/pico-sdk
 # Resolve the real directory of this .bashrc (it is symlinked from the repo)
 MYBASH_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-for module in functions aliases history ui ros2; do
+for module in functions aliases history ui git ros2; do
 	if [ -f "$MYBASH_DIR/$module.bash" ]; then
 		source "$MYBASH_DIR/$module.bash"
 	fi
