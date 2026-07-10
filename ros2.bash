@@ -20,6 +20,11 @@ alias te='ros2 topic echo'
 alias run='ros2 run'
 alias la='ros2 launch'
 
+# Kill lingering ROS and Gazebo processes
+killros() {
+	ps aux | grep -E 'ros|gazebo' | grep -v grep | awk '{print $2}' | xargs -r kill -9
+}
+
 # Source the ros2 and setup variables
 source /opt/ros/humble/setup.bash
 source ~/common_ws/install/setup.bash
