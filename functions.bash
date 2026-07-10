@@ -333,6 +333,17 @@ trim() {
 	echo -n "$var"
 }
 
+# Yazi terminal file manager; changes to the last directory on quit (q)
+yz() {
+	local tmp cwd
+	tmp="$(mktemp -t yazi-cwd.XXXXXX)"
+	yazi "$@" --cwd-file="$tmp"
+	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
+}
+
 # GitHub Titus Additions
 
 gcom() {

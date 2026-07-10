@@ -99,7 +99,7 @@ checkEnv() {
 
 installDepend() {
     ## Check for dependencies.
-    DEPENDENCIES='bash bash-completion tar bat tree multitail fastfetch wget unzip fontconfig btop yazi'
+    DEPENDENCIES='bash bash-completion tar bat tree multitail fastfetch wget unzip fontconfig btop'
     if ! command_exists nvim; then
         DEPENDENCIES="${DEPENDENCIES} neovim"
     fi
@@ -126,11 +126,11 @@ installDepend() {
     elif [ "$PACKAGER" = "nala" ]; then
         ${SUDO_CMD} ${PACKAGER} install -y ${DEPENDENCIES}
     elif [ "$PACKAGER" = "emerge" ]; then
-        ${SUDO_CMD} ${PACKAGER} -v app-shells/bash app-shells/bash-completion app-arch/tar app-editors/neovim sys-apps/bat app-text/tree app-text/multitail app-misc/fastfetch sys-process/btop app-misc/yazi
+        ${SUDO_CMD} ${PACKAGER} -v app-shells/bash app-shells/bash-completion app-arch/tar app-editors/neovim sys-apps/bat app-text/tree app-text/multitail app-misc/fastfetch sys-process/btop
     elif [ "$PACKAGER" = "xbps-install" ]; then
         ${SUDO_CMD} ${PACKAGER} -v ${DEPENDENCIES}
     elif [ "$PACKAGER" = "nix-env" ]; then
-        ${SUDO_CMD} ${PACKAGER} -iA nixos.bash nixos.bash-completion nixos.gnutar nixos.neovim nixos.bat nixos.tree nixos.multitail nixos.fastfetch nixos.btop nixos.yazi nixos.pkgs.starship
+        ${SUDO_CMD} ${PACKAGER} -iA nixos.bash nixos.bash-completion nixos.gnutar nixos.neovim nixos.bat nixos.tree nixos.multitail nixos.fastfetch nixos.btop nixos.pkgs.starship
     elif [ "$PACKAGER" = "dnf" ]; then
         ${SUDO_CMD} ${PACKAGER} install -y ${DEPENDENCIES}
     else
@@ -200,6 +200,48 @@ installYakuake() {
             ${SUDO_CMD} ${PACKAGER} install -yq yakuake
             ;;
     esac
+}
+
+installYazi() {
+    if command_exists yazi; then
+        echo "Yazi already installed"
+        return
+    fi
+
+    echo "${YELLOW}Installing yazi...${RC}"
+    case "$PACKAGER" in
+        pacman)
+            if command_exists yay; then
+                yay --noconfirm -S yazi || true
+            elif command_exists paru; then
+                paru --noconfirm -S yazi || true
+            else
+                ${SUDO_CMD} ${PACKAGER} --noconfirm -S yazi || true
+            fi
+            ;;
+        emerge)
+            ${SUDO_CMD} ${PACKAGER} -v app-misc/yazi || true
+            ;;
+        nix-env)
+            ${SUDO_CMD} ${PACKAGER} -iA nixos.yazi || true
+            ;;
+        nala|dnf)
+            ${SUDO_CMD} ${PACKAGER} install -y yazi || true
+            ;;
+        *)
+            ${SUDO_CMD} ${PACKAGER} install -yq yazi || true
+            ;;
+    esac
+
+    ## Fall back to cargo if the package manager didn't provide yazi.
+    if ! command_exists yazi; then
+        echo "${YELLOW}Yazi not available from package manager, installing via cargo...${RC}"
+        if ! command_exists cargo; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            . "$HOME/.cargo/env"
+        fi
+        cargo install --locked yazi-fm yazi-cli
+    fi
 }
 
 installStarshipAndFzf() {
@@ -309,6 +351,7 @@ linkConfig() {
 checkEnv
 installDepend
 installYakuake
+installYazi
 installStarshipAndFzf
 installZoxide
 install_additional_dependencies
