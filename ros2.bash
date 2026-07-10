@@ -39,10 +39,10 @@ rosid() {
 	fi
 }
 
-# Source the ros2 and setup variables
-source /opt/ros/"$ROS_DISTRO"/setup.bash
-source ~/common_ws/install/setup.bash
-source ~/microros_ws/install/setup.bash
+# Source the ros2 distro and workspace overlays (only if they exist)
+[ -f /opt/ros/"$ROS_DISTRO"/setup.bash ] && source /opt/ros/"$ROS_DISTRO"/setup.bash
+[ -f ~/common_ws/install/setup.bash ] && source ~/common_ws/install/setup.bash
+[ -f ~/microros_ws/install/setup.bash ] && source ~/microros_ws/install/setup.bash
 
 # Load the permanent ROS_DOMAIN_ID selected during setup
 [ -f ~/.ros_domain_id ] && source ~/.ros_domain_id
