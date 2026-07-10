@@ -4,7 +4,7 @@
 #######################################################
 
 # ROS 2 distribution
-export ROS_DISTRO=humble
+export ROS_DISTRO=jazzy
 
 # alias ros2 commands
 
