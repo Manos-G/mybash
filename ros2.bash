@@ -14,6 +14,7 @@ alias so="source /opt/ros/$ROS_DISTRO/setup.bash"
 alias cb='colcon build'
 alias cbs='colcon build --symlink-install'
 alias cbp='colcon build --packages-select'
+alias cbps='colcon build --symlink-install --packages-select'
 
 alias cl='rm -rf install build log'
 
@@ -26,6 +27,16 @@ alias la='ros2 launch'
 # Kill lingering ROS and Gazebo processes
 killros() {
 	ps aux | grep -E 'ros|gazebo' | grep -v grep | awk '{print $2}' | xargs -r kill -9
+}
+
+# Show or set ROS_DOMAIN_ID for the current shell
+rosid() {
+	if [ -z "$1" ]; then
+		echo "Current ROS_DOMAIN_ID is: ${ROS_DOMAIN_ID:-0 (Default)}"
+	else
+		export ROS_DOMAIN_ID=$1
+		echo "ROS_DOMAIN_ID set to $ROS_DOMAIN_ID"
+	fi
 }
 
 # Source the ros2 and setup variables
