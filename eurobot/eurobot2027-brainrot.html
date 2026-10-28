@@ -766,7 +766,7 @@ const train = {
     /* sleepers + rails */
     const so = this.dist % .7;
     for (let k = 0; k < 44; k++) {
-      const z = .62 + k * .7 - so; if (z > ZMAX) break;
+      const z = .62 + k * .7 - so; if (z < .62) continue; if (z > ZMAX) break;
       [-1, 0, 1].forEach(L => poly([P(L - .42, z), P(L + .42, z), P(L + .42, z + .14), P(L - .42, z + .14)], "#3f3128"));
     }
     [-1, 0, 1].forEach(L => [-.27, .27].forEach(o => {
@@ -880,7 +880,7 @@ const blocks = {
   },
   draw(){
     const B = W / 7, base = H * .93, me = this.pos();
-    this.camX += ((me.x - 2.3) - this.camX) * .2;
+    this.camX = Math.abs(me.x - 2.3 - this.camX) > 4 ? me.x - 2.3 : this.camX + ((me.x - 2.3) - this.camX) * .2;
     const camX = this.camX;
     const g = cx.createLinearGradient(0, 0, 0, base);
     g.addColorStop(0, "#5aa6ff"); g.addColorStop(1, "#c9e8ff");
