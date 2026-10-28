@@ -1,0 +1,1004 @@
+<title>Eurobot 2027 Brainrot</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bungee&family=Rubik:wght@400;500;700&display=swap">
+<style>
+/* Layout: a 9:16 phone "video" on the left, the control deck on the right, cheat sheet + quiz underneath.
+   One committed dark look; the two Eurobot team colours (RAL 1023 yellow, RAL 5017 blue) are the accents. */
+:root{
+  color-scheme: dark;
+  --bg:#0f0d17;
+  --panel:#191626;
+  --panel-2:#231f35;
+  --line:#342e4d;
+  --ink:#f5f1fc;
+  --muted:#aaa3c4;
+  --gold:#f7b500;
+  --gold-ink:#1a1300;
+  --blue:#46a3e0;
+  --team-blue:#005b8c;
+  --ok:#3ddc97;
+  --bad:#ff6b6b;
+  --f-display:"Bungee","Archivo Black",Impact,"Arial Black",sans-serif;
+  --f-cap:"Archivo Black","Arial Black",Impact,sans-serif;
+  --f-body:"Rubik",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.wrap{max-width:1140px;margin:0 auto;display:grid;gap:32px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:28px 56px}
+
+header{display:grid;gap:8px;max-width:62ch}
+.eyebrow{font-family:var(--f-display);font-size:12px;letter-spacing:.12em;color:var(--gold);text-transform:uppercase}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(26px,4.4vw,42px);line-height:1.08;margin:0;text-wrap:balance}
+h1 .b{color:var(--blue)}
+h1 .y{color:var(--gold)}
+header p{margin:0;color:var(--muted)}
+h2{font-family:var(--f-display);font-weight:400;font-size:20px;margin:0;letter-spacing:.02em;text-wrap:balance}
+
+.main{display:grid;gap:28px;grid-template-columns:minmax(0,1fr);align-items:start}
+@media (min-width:880px){.main{grid-template-columns:min(46%,calc(min(84vh,800px)*9/16)) minmax(0,1fr)}}
+
+/* ---------- the "video" ---------- */
+.stage{position:relative;justify-self:center;width:min(100%,calc(min(84vh,800px)*9/16));max-width:100%;
+  aspect-ratio:9/16;border-radius:26px;overflow:hidden;background:#000;container-type:inline-size;
+  box-shadow:0 0 0 1px var(--line),0 30px 80px -30px rgba(0,0,0,.8);user-select:none;-webkit-user-select:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.tag{position:absolute;top:14px;left:14px;right:96px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;z-index:3}
+.tag span{font-family:var(--f-display);font-size:11px;letter-spacing:.06em;padding:4px 8px;border-radius:6px;background:rgba(10,8,18,.78);color:#fff;white-space:nowrap}
+.tag .part{background:var(--gold);color:var(--gold-ink)}
+
+.caption{position:absolute;left:5%;right:5%;top:30%;z-index:4;text-align:center;pointer-events:none;
+  font-family:var(--f-cap);font-size:34px;font-size:10cqw;line-height:1.08;text-transform:uppercase;color:#fff;
+  text-shadow:0 3px 0 #000,3px 0 0 #000,-3px 0 0 #000,0 -3px 0 #000,2px 2px 0 #000,-2px 2px 0 #000,2px -2px 0 #000,-2px -2px 0 #000,0 6px 14px rgba(0,0,0,.6)}
+.caption .w{display:inline-block;margin:0 .12em}
+.caption .w.on{color:var(--gold);transform:scale(1.08)}
+.caption.bump{animation:bump .18s ease-out}
+@keyframes bump{from{transform:scale(.86)}to{transform:scale(1)}}
+
+.pop{position:absolute;top:13%;right:6%;z-index:5;display:grid;justify-items:center;padding:8px 14px 10px;border-radius:14px;
+  background:var(--gold);color:var(--gold-ink);transform:rotate(6deg) scale(0);transition:transform .25s cubic-bezier(.3,1.6,.5,1);
+  box-shadow:0 6px 0 #000}
+.pop.show{transform:rotate(6deg) scale(1)}
+.pop.neg{background:var(--bad);color:#2a0000}
+.pop b{font-family:var(--f-display);font-weight:400;font-size:30px;font-size:9.5cqw;line-height:1}
+.pop small{font-family:var(--f-cap);font-size:11px;font-size:3.4cqw;letter-spacing:.06em}
+
+.char{position:absolute;bottom:-2%;z-index:3;transition:transform .28s cubic-bezier(.3,1.4,.5,1),opacity .2s;opacity:0;pointer-events:none}
+.char svg{display:block;width:100%;height:auto;filter:drop-shadow(0 8px 0 rgba(0,0,0,.35))}
+.char.peter{left:-3%;width:54%;transform:translateY(60%)}
+.char.stewie{right:-2%;width:50%;transform:translateY(60%)}
+.stage[data-speaker="P"] .peter,.stage[data-speaker="S"] .stewie,.stage[data-speaker="both"] .char{opacity:1;transform:translateY(0)}
+.stage[data-speaker="both"] .peter{width:46%}
+.stage[data-speaker="both"] .stewie{width:42%}
+.name{position:absolute;top:2%;font-family:var(--f-display);font-size:12px;font-size:3.6cqw;padding:3px 8px;border-radius:6px;box-shadow:0 3px 0 #000}
+.peter .name{left:18%;background:var(--gold);color:var(--gold-ink);transform:rotate(-5deg)}
+.stewie .name{right:16%;background:var(--team-blue);color:#fff;transform:rotate(5deg)}
+.char .mouth{transform-box:fill-box;transform-origin:center}
+.char.talking .mouth{animation:yap .16s infinite alternate}
+@keyframes yap{from{transform:scaleY(.25)}to{transform:scaleY(1.25)}}
+.char.talking svg{animation:bob .32s infinite alternate ease-in-out}
+@keyframes bob{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-2%) rotate(1deg)}}
+
+.bar{position:absolute;left:0;right:0;bottom:0;height:5px;background:rgba(255,255,255,.18);z-index:6}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s linear}
+
+.overlay{position:absolute;inset:0;z-index:7;display:grid;place-items:center;background:rgba(8,6,14,.35);border:0;padding:0;cursor:pointer}
+.overlay span{display:grid;place-items:center;gap:6px;font-family:var(--f-display);font-size:13px;letter-spacing:.06em;color:#fff;text-shadow:0 2px 0 #000}
+.overlay svg{width:84px;height:84px;filter:drop-shadow(0 6px 0 #000)}
+
+/* ---------- deck ---------- */
+.deck{display:grid;gap:22px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:700;min-width:118px;justify-content:center}
+.btn svg{width:16px;height:16px;flex:none}
+.opts{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center}
+.opt{display:grid;gap:6px}
+.opt>span{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{padding:8px 12px;border:0;background:var(--panel);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#04121d;font-weight:700}
+select{padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel)}
+.status{font-size:13px;color:var(--muted);margin:0}
+
+.chapters{list-style:none;margin:0;padding:0;display:grid;gap:6px;counter-reset:ch}
+.chapters button{width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;
+  padding:9px 12px;border-radius:10px;border:1px solid transparent;background:var(--panel);cursor:pointer}
+.chapters button:hover{border-color:var(--line)}
+.chapters button[aria-current="true"]{border-color:var(--gold);background:var(--panel-2)}
+.chapters .n{font-family:var(--f-display);font-size:13px;color:var(--gold)}
+.chapters .t{font-weight:500;min-width:0}
+.chapters .p{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- study section ---------- */
+.study{display:grid;gap:28px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:880px){.study{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;display:grid;gap:16px;align-content:start;min-width:0}
+.card>p{margin:0;color:var(--muted)}
+.sheet{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.pts{text-align:right;font-family:var(--f-display);font-size:14px;color:var(--gold);white-space:nowrap}
+tr.grp th{font-family:var(--f-display);font-weight:400;font-size:13px;letter-spacing:.04em;color:var(--blue);padding-top:16px}
+tr.grp:first-child th{padding-top:4px}
+.facts{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.fact{background:var(--panel-2);border-radius:12px;padding:10px 12px;display:grid;gap:2px}
+.fact b{font-family:var(--f-display);font-weight:400;font-size:17px;color:var(--ink)}
+.fact span{font-size:12px;color:var(--muted)}
+
+.quiz{display:grid;gap:14px;margin:0;padding:0;list-style:none}
+.q{display:grid;gap:8px}
+.q p{margin:0;font-weight:500}
+.answers{display:flex;flex-wrap:wrap;gap:8px}
+.answers button{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);cursor:pointer}
+.answers button:disabled{cursor:default}
+.answers button.right{background:var(--ok);border-color:var(--ok);color:#03200f;font-weight:700}
+.answers button.wrong{background:var(--bad);border-color:var(--bad);color:#2a0000}
+.why{margin:0;font-size:13px;color:var(--muted)}
+.score{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.score b{font-family:var(--f-display);font-weight:400;font-size:22px;color:var(--gold)}
+
+footer{color:var(--muted);font-size:13px;display:grid;gap:4px;max-width:75ch}
+footer p{margin:0}
+
+@media (prefers-reduced-motion:reduce){
+  .char.talking svg,.char.talking .mouth,.caption.bump{animation:none}
+  .char,.pop,.bar i{transition:none}
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Eurobot 2027 · The legend of Camelot</div>
+    <h1>Peter &amp; Stewie explain the <span class="y">Eurobot</span> <span class="b">2027</span> rules</h1>
+    <p>Press play, let the brain rot do its job, then take the quiz. All points come from the OFFICIAL 1.0 rulebook.</p>
+  </header>
+
+  <section class="main" aria-label="Video">
+    <div class="stage" id="stage" data-speaker="both">
+      <canvas id="bg" aria-hidden="true"></canvas>
+      <div class="tag" aria-live="off"><span class="part" id="partTag">PART 1/8</span><span id="chTag">THE VIBE</span></div>
+
+      <div class="pop" id="pop" aria-hidden="true"><b id="popN">+20</b><small id="popL">GATE</small></div>
+
+      <div class="caption" id="cap" aria-live="polite"><span class="w">Eurobot</span> <span class="w on">2027</span> <span class="w">rules</span></div>
+
+      <div class="char peter" id="peter" aria-hidden="true">
+        <svg viewBox="0 0 200 250">
+          <path d="M14 250 Q18 190 100 182 Q182 190 186 250Z" fill="#f4f4f2" stroke="#1d1712" stroke-width="3"/>
+          <path d="M84 186 L100 214 L116 186" fill="none" stroke="#1d1712" stroke-width="3"/>
+          <ellipse cx="100" cy="164" rx="56" ry="26" fill="#f2c7a0" stroke="#1d1712" stroke-width="3"/>
+          <ellipse cx="100" cy="102" rx="64" ry="70" fill="#f2c7a0" stroke="#1d1712" stroke-width="3"/>
+          <path d="M44 78 Q100 18 156 78 Q128 52 100 54 Q70 52 44 78Z" fill="#3a2a1d"/>
+          <circle cx="77" cy="98" r="17" fill="#fff" stroke="#1d1712" stroke-width="4"/>
+          <circle cx="123" cy="98" r="17" fill="#fff" stroke="#1d1712" stroke-width="4"/>
+          <path d="M94 98 H106" stroke="#1d1712" stroke-width="4"/>
+          <circle cx="80" cy="99" r="3.5" fill="#1d1712"/>
+          <circle cx="120" cy="99" r="3.5" fill="#1d1712"/>
+          <ellipse cx="100" cy="121" rx="10" ry="7" fill="#e3ad84"/>
+          <ellipse class="mouth" cx="100" cy="142" rx="15" ry="6" fill="#5b1f22"/>
+          <path d="M95 176 Q100 183 105 176" fill="none" stroke="#1d1712" stroke-width="2.5"/>
+        </svg>
+        <span class="name">PETER</span>
+      </div>
+
+      <div class="char stewie" id="stewie" aria-hidden="true">
+        <svg viewBox="0 0 200 220">
+          <path d="M48 220 Q52 168 100 162 Q148 168 152 220Z" fill="#f2d14b" stroke="#1d1712" stroke-width="3"/>
+          <path d="M66 220 V184 H134 V220" fill="#d63b3b" stroke="#1d1712" stroke-width="3"/>
+          <rect x="88" y="150" width="24" height="18" fill="#f2c7a0" stroke="#1d1712" stroke-width="3"/>
+          <ellipse cx="100" cy="98" rx="86" ry="56" fill="#f2c7a0" stroke="#1d1712" stroke-width="3"/>
+          <path d="M84 48 Q100 36 116 48" fill="none" stroke="#5a3a1e" stroke-width="5" stroke-linecap="round"/>
+          <ellipse cx="76" cy="94" rx="15" ry="12" fill="#fff" stroke="#1d1712" stroke-width="3"/>
+          <ellipse cx="124" cy="94" rx="15" ry="12" fill="#fff" stroke="#1d1712" stroke-width="3"/>
+          <circle cx="80" cy="96" r="4" fill="#1d1712"/>
+          <circle cx="120" cy="96" r="4" fill="#1d1712"/>
+          <path d="M58 76 L92 84 M142 76 L108 84" stroke="#1d1712" stroke-width="4" stroke-linecap="round"/>
+          <path d="M96 112 Q100 117 104 112" fill="none" stroke="#1d1712" stroke-width="2.5"/>
+          <ellipse class="mouth" cx="100" cy="132" rx="11" ry="4.5" fill="#5b1f22"/>
+        </svg>
+        <span class="name">STEWIE</span>
+      </div>
+
+      <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+
+      <button class="overlay" id="overlay" type="button" aria-label="Play the video">
+        <span>
+          <svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="40" fill="#f7b500" stroke="#000" stroke-width="3"/><path d="M34 26 L60 42 L34 58Z" fill="#1a1300"/></svg>
+          <em id="overlayText" style="font-style:normal">TAP TO PLAY</em>
+        </span>
+      </button>
+    </div>
+
+    <div class="deck">
+      <div class="controls">
+        <button class="btn primary" id="playBtn" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true" id="playIcon"><path d="M4 2 L13 8 L4 14Z" fill="currentColor"/></svg>
+          <span id="playLabel">Play</span>
+        </button>
+        <button class="btn" id="prevBtn" type="button" aria-label="Previous line">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2 V14 M14 2 L5 8 L14 14Z" stroke="currentColor" stroke-width="2" fill="currentColor"/></svg>Back
+        </button>
+        <button class="btn" id="nextBtn" type="button" aria-label="Next line">
+          Next<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 2 V14 M2 2 L11 8 L2 14Z" stroke="currentColor" stroke-width="2" fill="currentColor"/></svg>
+        </button>
+        <button class="btn" id="restartBtn" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8 A5 5 0 1 0 5 4 M5 1 V4 H2" fill="none" stroke="currentColor" stroke-width="2"/></svg>Restart
+        </button>
+      </div>
+
+      <div class="opts">
+        <div class="opt">
+          <span id="bgLabel">Background</span>
+          <div class="seg" role="group" aria-labelledby="bgLabel">
+            <button type="button" id="modeTrain" aria-pressed="true">Train run</button>
+            <button type="button" id="modeBlock" aria-pressed="false">Block parkour</button>
+          </div>
+        </div>
+        <div class="opt">
+          <span id="voiceLabel">Voices</span>
+          <div class="seg" role="group" aria-labelledby="voiceLabel">
+            <button type="button" id="voiceOn" aria-pressed="true">On</button>
+            <button type="button" id="voiceOff" aria-pressed="false">Captions only</button>
+          </div>
+        </div>
+        <label class="opt" for="speed">
+          <span>Speed</span>
+          <select id="speed">
+            <option value="0.85">0.85×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.2">1.2×</option>
+            <option value="1.4">1.4×</option>
+          </select>
+        </label>
+      </div>
+      <p class="status" id="voiceStatus">Voices use the text-to-speech of your browser. They sound different on each device.</p>
+
+      <div class="card" style="padding:16px">
+        <h2>Episodes</h2>
+        <ol class="chapters" id="chapters"></ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="study" aria-label="Study">
+    <div class="card">
+      <h2>Points cheat sheet</h2>
+      <p>Section F of the rules. The scoring always favours the team.</p>
+      <div class="sheet">
+        <table>
+          <tbody>
+            <tr class="grp"><th colspan="2">Build the glorious Camelot</th></tr>
+            <tr><td>Each stone placed in a construction zone</td><td class="pts">+1</td></tr>
+            <tr><td>Wall: 3 flat stones stacked, in a rectangle wall zone</td><td class="pts">+5</td></tr>
+            <tr><td>Tower: 1 standing stone, in a circle zone</td><td class="pts">+5</td></tr>
+            <tr><td>Gate: 2 standing stones + 1 flat on top, in a wall zone (1 per castle)</td><td class="pts">+20</td></tr>
+            <tr class="grp"><th colspan="2">I have the real one! (Grail)</th></tr>
+            <tr><td>Grail present in your castle</td><td class="pts">+5</td></tr>
+            <tr><td>Each elevation level (1 to 4)</td><td class="pts">+5</td></tr>
+            <tr class="grp"><th colspan="2">The return of the king</th></tr>
+            <tr><td>Main robot partly in its throne room</td><td class="pts">+5</td></tr>
+            <tr><td>Main robot fully in its throne room</td><td class="pts">+10</td></tr>
+            <tr class="grp"><th colspan="2">To the attack!</th></tr>
+            <tr><td>Each enemy moat occupied by your SIMAs</td><td class="pts">+5</td></tr>
+            <tr><td>At least one SIMA attacks an enemy SIMA</td><td class="pts">+5</td></tr>
+            <tr><td>One cannonball in the enemy courtyard</td><td class="pts">+5</td></tr>
+            <tr><td>At least 3 cannonballs there (extra)</td><td class="pts">+15</td></tr>
+            <tr class="grp"><th colspan="2">Penalty</th></tr>
+            <tr><td>Unfair play, for example smashing the enemy castle</td><td class="pts" style="color:var(--bad)">−50 min</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="facts">
+        <div class="fact"><b>3000 × 2000 mm</b><span>Table size</span></div>
+        <div class="fact"><b>30 stones</b><span>Boxes 320 × 110 × 110 mm, about 90 g</span></div>
+        <div class="fact"><b>ArUco 13</b><span>On the 4 long faces of each stone</span></div>
+        <div class="fact"><b>50 × 50 cm</b><span>Throne room: start and finish</span></div>
+        <div class="fact"><b>85 s → end</b><span>Attack phase</span></div>
+        <div class="fact"><b>10 balls</b><span>45 mm foam, max 1 per SIMA</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="score"><h2>Quiz: did it stick?</h2><b id="score">0 / 8</b></div>
+      <ol class="quiz" id="quiz"></ol>
+      <div><button class="btn" id="quizReset" type="button">Reset quiz</button></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Source: “Eurobot and Eurobot Junior 2027 Rules”, OFFICIAL 1.0 version. The general Eurobot rules also apply. Referee answers on the Eurobot FAQ are official.</p>
+    <p>Fan parody made for team training. It is not made by or connected to Eurobot, Planète Sciences or the owners of the characters. The game backgrounds are drawn by this page.</p>
+  </footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* ================= SCRIPT ================= */
+const SCRIPT = [
+ { t:"The vibe", pts:"4 actions", lines:[
+  ["P","Stewie! The Eurobot 2027 rules dropped and the theme is King Arthur. Camelot, baby!"],
+  ["S","Oh joy. Robots who think they are knights. Finally, a crowd as delusional as you, fat man."],
+  ["P","Rude. Okay, what is the lore?"],
+  ["S","A robot called Arthur finds the Holy Grail. Then another robot says HE is the real King Arthur and wants to steal it. Medieval beef."],
+  ["P","So how many side quests?"],
+  ["S","Four actions. Build the glorious Camelot. I have the real one. The return of the king. And to the attack."],
+  ["P","Do I have to do them in order?"],
+  ["S","No. Every action is independent and no action is mandatory. The rules say: build simple, reliable systems with a few actions."],
+  ["P","Simple and reliable. So, like me."],
+  ["S","You are neither. Continue."]
+ ]},
+ { t:"The map", pts:"3000 × 2000 mm", lines:[
+  ["P","What does the table look like?"],
+  ["S","3000 by 2000 mm, with 70 mm high borders. One team is blue, the other team is yellow."],
+  ["P","Where does my robot spawn?"],
+  ["S","In your throne room. A 50 by 50 cm square. It is your start zone AND your finish zone. At the end of setup, your robot must be fully inside it."],
+  ["P","What else is on the map?"],
+  ["S","The castle courtyard, the stables where your little knight robots start, the ramparts, the moat, and the stone quarries."]
+ ]},
+ { t:"The stones", pts:"30 boxes", lines:[
+  ["P","Stones? Real rocks? My back, Stewie."],
+  ["S","Relax. The stones are cardboard boxes. 320 by 110 by 110 mm, about 90 grams. There are 30 of them."],
+  ["P","30 boxes. That is literally my online shopping history."],
+  ["S","Each stone has ArUco tag 13 on its four long faces. Each quarry holds 3 stones, lying flat, stacked."]
+ ]},
+ { t:"Build Camelot", pts:"1 · 5 · 5 · 20", lines:[
+  ["P","So how do I build Camelot?"],
+  ["S","Grab stones and put them in your ramparts, following the castle plan. Walls, towers, and one gate."],
+  ["P","How do I build a wall?"],
+  ["S","3 stones lying flat, stacked on top of each other, inside a rectangle wall zone. 5 points.",{n:"+5",l:"WALL"}],
+  ["P","And a tower?"],
+  ["S","1 stone standing up, inside a circle zone. Also 5 points.",{n:"+5",l:"TOWER"}],
+  ["P","And the gate?"],
+  ["S","2 stones standing up, with a third stone lying flat on top, inside a wall zone. 20 points! But only one gate per castle.",{n:"+20",l:"GATE"}],
+  ["P","20 points? The gate is lowkey the main character."],
+  ["S","Yes. And every stone placed in a construction zone gives 1 more point.",{n:"+1",l:"PER STONE"}],
+  ["P","So a wall is 3 stone points plus 5. That is 8?"],
+  ["S","Correct. And a gate is 3 plus 20. 23. Even you can count that."],
+  ["P","What are the catches?"],
+  ["S","One building per zone. A stone counts for one construction only. And a stone your robot still holds at the end does not count."],
+  ["P","Can I keep spare stones somewhere?"],
+  ["S","Yes. You can store up to 3 stones in your castle courtyard during the match."],
+  ["P","Can I steal stones from their castle?"],
+  ["S","Only when ALL the stone quarries are empty. And you do not just smash their castle. Unfair play costs at least 50 points.",{n:"-50",l:"PENALTY",neg:true}],
+  ["P","Minus 50? That is not a nerf, that is a war crime."]
+ ]},
+ { t:"The Grail", pts:"up to 25", lines:[
+  ["P","Now the Grail! Where do I get one?"],
+  ["S","You make it. It follows the same build rules as a SIMA, and it must be bigger than a 60 mm cube."],
+  ["P","Where does it go?"],
+  ["S","Before the match, on the floor of your throne room. Fully inside the area, and not held by your robot."],
+  ["P","And then?"],
+  ["S","During the match, your robot picks it up and puts it on a support. A stone, a construction, or the robot itself. Higher is better."],
+  ["P","How much is it worth?"],
+  ["S","5 points if the Grail is in your castle. Plus 5 points per level.",{n:"+5",l:"PER LEVEL"}],
+  ["P","What are the levels?"],
+  ["S","Level 1, one flat stone. Level 2, two flat stones. Level 3, three flat stones or one standing stone. Level 4, on your robot roof, above 30 cm, with no actuator or fixing on it.",{n:"LVL 4",l:"+20"}],
+  ["P","So a max Grail is 25 points. Bussin."],
+  ["S","The lowest point of the Grail sets the level. And the Grail must stay fully inside your castle the whole match, or the referee removes it."],
+  ["P","Can I yoink their Grail?"],
+  ["S","No. Moving the other team's Grail is forbidden. And if your actuator still holds your Grail at the end, it does not count."]
+ ]},
+ { t:"Return of the king", pts:"5 · 10", lines:[
+  ["P","What is the return of the king? A Lord of the Rings crossover?"],
+  ["S","No, you absolute ham. At the end of the match, your main robot must be stopped in its throne room."],
+  ["P","Points?"],
+  ["S","Partly inside, 5 points. Fully inside, 10 points. SIMAs do not count for this one.",{n:"+10",l:"FULLY HOME"}]
+ ]},
+ { t:"To the attack", pts:"5 · 5 · 5 · 15", lines:[
+  ["P","Now the fun part. To the attack!"],
+  ["S","Your knights are SIMAs. Small independent mobile actuators that your team builds. They start in the stable, a 200 by 300 mm zone."],
+  ["P","When can they go?"],
+  ["S","The attack phase is from second 85 to the end of the match. If a SIMA leaves the stable before that, it is removed from the table."],
+  ["P","And what do they do?"],
+  ["S","They drive into the moats of the enemy castle. 5 points for each moat your team occupies.",{n:"+5",l:"PER MOAT"}],
+  ["P","Can my knights fight their knights?"],
+  ["S","Yes. If a SIMA actuator touches an enemy SIMA at the end, 5 points. That actuator needs its own colour, must not damage anything, and only it may touch.",{n:"+5",l:"KNIGHT DUEL"}],
+  ["P","And the cannons?"],
+  ["S","Each team has 10 foam balls, 45 mm wide. Load them into your robot and SIMAs before the match. Max one ball per SIMA."],
+  ["P","So I yeet them at the enemy castle?"],
+  ["S","Yes. One ball in the enemy courtyard at the end, 5 points. 3 or more, 15 extra points.",{n:"+20",l:"3+ BALLS"}],
+  ["P","Can I block their balls?"],
+  ["S","No. Do not change the position or path of their balls on purpose. And balls have no height limit while they fly."],
+  ["P","The rules also say no weapon meaner than a grown rabbit."],
+  ["S","Finally, a rule written for you."]
+ ]},
+ { t:"Speed recap", pts:"all points", lines:[
+  ["P","Okay. Speed recap."],
+  ["S","Camelot. 1 point per stone, 5 per wall, 5 per tower, 20 for the gate."],
+  ["P","Grail. 5 in the castle, plus 5 per level, up to level 4."],
+  ["S","Return of the king. 5 partly home, 10 fully home."],
+  ["P","Attack. 5 per moat, 5 for a knight duel, 5 for one ball, plus 15 for 3 balls."],
+  ["S","In Eurobot Junior the robots are remote controlled. And read the official rules and the FAQ. Referee answers there are official."],
+  ["P","Camelot. It is a silly place."],
+  ["S","Take the quiz below, or I build a robot that does it for you."]
+ ]}
+];
+
+const FLAT = [];
+SCRIPT.forEach((ch, c) => ch.lines.forEach(l => FLAT.push({ c, s:l[0], t:l[1], pop:l[2] || null })));
+
+/* words + caption chunks for each line */
+function prep(line){
+  const words = line.t.split(/\s+/).filter(Boolean);
+  const chunkOf = []; let chunk = 0, len = 0, count = 0;
+  words.forEach((w, i) => {
+    if (count > 0 && (len + w.length > 15 || count >= 3)) { chunk++; len = 0; count = 0; }
+    chunkOf[i] = chunk; len += w.length + 1; count++;
+  });
+  const say = line.t
+    .replace(/(\d)\s?mm\b/g, "$1 millimetres").replace(/(\d)\s?cm\b/g, "$1 centimetres")
+    .replace(/\bSIMAs\b/g, "seemas").replace(/\bSIMA\b/g, "seema").replace(/\bArUco\b/g, "aruco")
+    .replace(/\byeet\b/g, "yeet");
+  return { words, chunkOf, say };
+}
+const PREP = FLAT.map(prep);
+
+/* ================= DOM ================= */
+const $ = id => document.getElementById(id);
+const stage = $("stage"), cap = $("cap"), pop = $("pop"), bar = $("bar");
+const peter = $("peter"), stewie = $("stewie"), overlay = $("overlay"), overlayText = $("overlayText");
+const playLabel = $("playLabel"), playIcon = $("playIcon");
+const synth = ("speechSynthesis" in window) ? window.speechSynthesis : null;
+
+let idx = 0, playing = false, run = 0, curWord = -1, curChunk = -1, popShown = false;
+let wordTimer = null, watchdog = null, gapTimer = null, popTimer = null, startTimer = null;
+let speed = 1, voiceOn = !!synth, unlocked = false, voiceP = null, voiceS = null;
+
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+};
+
+/* chapters list */
+const chList = $("chapters");
+const chFirst = [];
+SCRIPT.forEach((ch, c) => {
+  chFirst[c] = FLAT.findIndex(l => l.c === c);
+  const li = document.createElement("li");
+  const b = document.createElement("button");
+  b.type = "button";
+  b.innerHTML = `<span class="n">${String(c + 1).padStart(2, "0")}</span><span class="t"></span><span class="p"></span>`;
+  b.querySelector(".t").textContent = ch.t;
+  b.querySelector(".p").textContent = ch.pts;
+  b.addEventListener("click", () => { if (playing) startLine(chFirst[c]); else showLine(chFirst[c]); });
+  li.appendChild(b); chList.appendChild(li);
+});
+
+function setChapter(c){
+  $("partTag").textContent = `PART ${c + 1}/${SCRIPT.length}`;
+  $("chTag").textContent = SCRIPT[c].t.toUpperCase();
+  [...chList.querySelectorAll("button")].forEach((b, i) => b.setAttribute("aria-current", i === c ? "true" : "false"));
+}
+function setSpeaker(s){ stage.dataset.speaker = s; }
+function setTalking(on){
+  const who = stage.dataset.speaker;
+  peter.classList.toggle("talking", on && who === "P");
+  stewie.classList.toggle("talking", on && who === "S");
+}
+function renderCaption(i, k){
+  const info = PREP[i], ch = info.chunkOf[k];
+  if (ch !== curChunk) {
+    cap.textContent = "";
+    info.words.forEach((w, j) => {
+      if (info.chunkOf[j] !== ch) return;
+      const s = document.createElement("span");
+      s.className = "w"; s.dataset.j = j; s.textContent = w;
+      cap.appendChild(s); cap.appendChild(document.createTextNode(" "));
+    });
+    cap.classList.remove("bump"); void cap.offsetWidth; cap.classList.add("bump");
+    curChunk = ch;
+  }
+  cap.querySelectorAll(".w").forEach(s => s.classList.toggle("on", +s.dataset.j === k));
+}
+function setWord(k){
+  const info = PREP[idx];
+  k = Math.max(0, Math.min(info.words.length - 1, k));
+  curWord = k;
+  renderCaption(idx, k);
+  const line = FLAT[idx];
+  if (line.pop && !popShown && k >= Math.floor(info.words.length * 0.45)) showPop(line.pop);
+  bar.style.width = ((idx + (k + 1) / info.words.length) / FLAT.length * 100).toFixed(2) + "%";
+}
+function showPop(p){
+  popShown = true;
+  $("popN").textContent = p.n; $("popL").textContent = p.l;
+  pop.classList.toggle("neg", !!p.neg);
+  pop.classList.add("show");
+  clearTimeout(popTimer);
+  popTimer = setTimeout(() => pop.classList.remove("show"), 2600);
+}
+function hidePop(){ clearTimeout(popTimer); pop.classList.remove("show"); }
+
+function wordMs(w){ return Math.max(210, 110 + w.length * 58) / speed; }
+function stopTimers(){
+  [wordTimer, watchdog, gapTimer, startTimer].forEach(clearTimeout);
+  wordTimer = watchdog = gapTimer = startTimer = null;
+}
+function cancelSpeech(){ if (synth) { try { synth.cancel(); } catch(e){} } }
+
+function prepLine(i){
+  idx = i; curChunk = -1; popShown = false; hidePop();
+  const line = FLAT[i];
+  setSpeaker(line.s); setChapter(line.c); setWord(0);
+}
+function showLine(i){
+  stopTimers(); run++; cancelSpeech(); setTalking(false);
+  prepLine(Math.max(0, Math.min(FLAT.length - 1, i)));
+}
+
+function startLine(i){
+  stopTimers(); cancelSpeech();
+  if (i >= FLAT.length) { endVideo(); return; }
+  const my = ++run;
+  prepLine(i);
+  const line = FLAT[i], info = PREP[i], n = info.words.length;
+  let usingVoice = voiceOn && !!synth;
+
+  const finish = () => {
+    if (my !== run) return;
+    clearTimeout(wordTimer); clearTimeout(watchdog);
+    setWord(n - 1); setTalking(false);
+    if (!playing) return;
+    gapTimer = setTimeout(() => { if (my === run && playing) startLine(idx + 1); }, 280 / speed);
+  };
+  const advanceFrom = k => {
+    clearTimeout(wordTimer);
+    if (k >= n - 1) {
+      if (!usingVoice) wordTimer = setTimeout(finish, wordMs(info.words[k]) + 160);
+      return;
+    }
+    wordTimer = setTimeout(() => { if (my !== run) return; setWord(k + 1); advanceFrom(k + 1); }, wordMs(info.words[k]));
+  };
+  const toTimerMode = () => {
+    if (my !== run) return;
+    usingVoice = false; cancelSpeech(); setTalking(true); advanceFrom(Math.max(0, curWord));
+  };
+
+  if (!usingVoice) { setTalking(true); advanceFrom(0); return; }
+
+  const u = new SpeechSynthesisUtterance(info.say);
+  const v = line.s === "P" ? voiceP : voiceS;
+  if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = "en-US"; }
+  u.pitch = line.s === "P" ? 0.7 : 1.85;
+  u.rate = Math.min(2, (line.s === "P" ? 1.0 : 1.12) * speed);
+  let started = false;
+  u.onstart = () => { if (my !== run) return; started = true; setTalking(true); advanceFrom(0); };
+  u.onboundary = e => {
+    if (my !== run || !usingVoice || (e.name && e.name !== "word")) return;
+    const k = Math.floor((e.charIndex / Math.max(1, info.say.length)) * n);
+    if (k > curWord) { setWord(k); advanceFrom(k); }
+  };
+  u.onend = () => { if (my === run && usingVoice) finish(); };
+  u.onerror = e => {
+    if (my !== run || e.error === "interrupted" || e.error === "canceled") return;
+    toTimerMode();
+  };
+  startTimer = setTimeout(() => { if (my === run) synth.speak(u); }, 70);
+  watchdog = setTimeout(() => { if (!started) toTimerMode(); }, 2200);
+}
+
+function setPlayUI(){
+  playLabel.textContent = playing ? "Pause" : "Play";
+  playIcon.innerHTML = playing
+    ? '<path d="M4 2 H7 V14 H4Z M9 2 H12 V14 H9Z" fill="currentColor"/>'
+    : '<path d="M4 2 L13 8 L4 14Z" fill="currentColor"/>';
+  overlay.hidden = playing;
+  overlay.setAttribute("aria-label", idx >= FLAT.length - 1 && curWord >= PREP[idx].words.length - 1 && !playing && run > 0 ? "Replay the video" : "Play the video");
+}
+function unlockSpeech(){
+  if (unlocked || !synth || !voiceOn) return;
+  unlocked = true;
+  try { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; synth.speak(u); } catch(e){}
+}
+function play(){
+  unlockSpeech();
+  if (ended) { ended = false; idx = 0; }
+  playing = true; setPlayUI(); startLine(idx);
+}
+function pause(){
+  playing = false; stopTimers(); run++; cancelSpeech(); setTalking(false); setPlayUI();
+  overlayText.textContent = "PAUSED · TAP TO PLAY";
+}
+let ended = false;
+function endVideo(){
+  playing = false; ended = true; setTalking(false); setPlayUI();
+  setSpeaker("both");
+  overlayText.textContent = "REPLAY · OR TAKE THE QUIZ";
+  bar.style.width = "100%";
+}
+function toggle(){ playing ? pause() : play(); }
+
+overlay.addEventListener("click", play);
+$("playBtn").addEventListener("click", toggle);
+$("prevBtn").addEventListener("click", () => { ended = false; playing ? startLine(Math.max(0, idx - 1)) : showLine(idx - 1); });
+$("nextBtn").addEventListener("click", () => { ended = false; playing ? startLine(Math.min(FLAT.length - 1, idx + 1)) : showLine(idx + 1); });
+$("restartBtn").addEventListener("click", () => { ended = false; if (playing) startLine(0); else { showLine(0); play(); } });
+document.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("button,select,input,textarea")) return;
+  if (e.code === "Space" || e.key === "k") { e.preventDefault(); toggle(); }
+  else if (e.key === "ArrowRight") $("nextBtn").click();
+  else if (e.key === "ArrowLeft") $("prevBtn").click();
+});
+$("speed").addEventListener("change", e => { speed = parseFloat(e.target.value) || 1; if (playing) startLine(idx); });
+
+/* voices */
+function pickVoices(){
+  if (!synth) return;
+  const vs = synth.getVoices().filter(v => /^en/i.test(v.lang));
+  const us = vs.filter(v => /en[-_]US/i.test(v.lang));
+  const gb = vs.filter(v => /en[-_]GB/i.test(v.lang));
+  voiceP = us.find(v => /(male|david|alex|fred|guy|aaron|mark|tom|eddy|ralph)/i.test(v.name) && !/female/i.test(v.name)) || us[0] || vs[0] || null;
+  voiceS = gb.find(v => v !== voiceP && /(daniel|george|arthur|oliver|male|ryan)/i.test(v.name)) || gb.find(v => v !== voiceP) || vs.find(v => v !== voiceP) || voiceP;
+  updateVoiceStatus();
+}
+function updateVoiceStatus(){
+  const st = $("voiceStatus");
+  if (!synth) { st.textContent = "This browser has no text-to-speech. The video plays with captions only."; return; }
+  if (!voiceOn) { st.textContent = "Captions only. The video runs on a timer."; return; }
+  st.textContent = voiceP
+    ? `Peter: ${voiceP.name}. Stewie: ${voiceS ? voiceS.name : voiceP.name}. Voices come from your browser and sound different on each device.`
+    : "Voices use the text-to-speech of your browser. They sound different on each device.";
+}
+if (synth) { pickVoices(); synth.addEventListener ? synth.addEventListener("voiceschanged", pickVoices) : (synth.onvoiceschanged = pickVoices); }
+function setVoice(on){
+  voiceOn = on && !!synth;
+  $("voiceOn").setAttribute("aria-pressed", String(voiceOn));
+  $("voiceOff").setAttribute("aria-pressed", String(!voiceOn));
+  store.set("eb27-voice", voiceOn ? "1" : "0");
+  updateVoiceStatus();
+  if (playing) startLine(idx);
+}
+$("voiceOn").addEventListener("click", () => setVoice(true));
+$("voiceOff").addEventListener("click", () => setVoice(false));
+if (!synth) { $("voiceOn").disabled = true; }
+setVoice(store.get("eb27-voice") !== "0");
+
+/* ================= GAMEPLAY BACKGROUND ================= */
+const cv = $("bg"), cx = cv.getContext("2d");
+let W = 360, H = 640, DPR = 1, mode = "train";
+const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const motion = reduce ? 0.3 : 1;
+function resize(){
+  const r = cv.getBoundingClientRect();
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = cv.width = Math.max(1, Math.round(r.width * DPR));
+  H = cv.height = Math.max(1, Math.round(r.height * DPR));
+}
+new ResizeObserver(resize).observe(cv);
+resize();
+
+const rnd = (a, b) => a + Math.random() * (b - a);
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function poly(pts, fill){ cx.beginPath(); cx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) cx.lineTo(pts[i][0], pts[i][1]); cx.closePath(); cx.fillStyle = fill; cx.fill(); }
+function hud(label, n){
+  const f = Math.round(13 * DPR);
+  cx.font = `${f}px Bungee, "Arial Black", sans-serif`;
+  const txt = `${label} ${n}`, tw = cx.measureText(txt).width;
+  const x = W - tw - 30 * DPR, y = 14 * DPR, h = 24 * DPR;
+  cx.fillStyle = "rgba(10,8,18,.78)";
+  cx.beginPath(); cx.roundRect ? cx.roundRect(x - 12 * DPR, y, tw + 30 * DPR, h, 6 * DPR) : cx.rect(x - 12 * DPR, y, tw + 30 * DPR, h); cx.fill();
+  cx.fillStyle = "#ffd23f"; cx.beginPath(); cx.arc(x, y + h / 2, 5 * DPR, 0, Math.PI * 2); cx.fill();
+  cx.fillStyle = "#fff"; cx.textBaseline = "middle"; cx.fillText(txt, x + 10 * DPR, y + h / 2 + DPR);
+}
+
+/* ---- Train run ---- */
+const ZMAX = 30, ZP = 2.0, ROW = 7, TLEN = 4;
+const TRAINS = [["#e8443a","#a92a22"],["#2f80d6","#1c5592"],["#f2c230","#b58e12"],["#3fb37f","#277a55"]];
+const WALLS = ["#7a4fd1","#d14f8b","#4f9bd1","#d1a14f","#4fd19a"];
+const train = {
+  init(){
+    this.objs = []; this.rows = []; this.dist = 0; this.nextRow = 9; this.safe = 0;
+    this.laneF = 0; this.jumpH = 0; this.jumpV = 0; this.coins = 0; this.t = 0;
+    this.city = []; let x = -1.1; while (x < 1.1) { const w = rnd(.04, .1); this.city.push({ x, w, h: rnd(.025, .11) }); x += w + rnd(0, .015); }
+    this.fill();
+  },
+  fill(){
+    while (this.nextRow - this.dist < ZMAX + 2) {
+      const zw = this.nextRow;
+      this.safe = Math.max(-1, Math.min(1, this.safe + [-1, 0, 0, 1][Math.floor(Math.random() * 4)]));
+      const others = [-1, 0, 1].filter(l => l !== this.safe);
+      const nTrains = Math.random() < .55 ? 1 : 2;
+      others.sort(() => Math.random() - .5).slice(0, nTrains).forEach(l => {
+        this.objs.push({ k:"train", lane:l, zw: zw + (Math.random() < .5 ? 0 : .5), len: TLEN, col: TRAINS[Math.floor(Math.random() * TRAINS.length)] });
+      });
+      if (Math.random() < .45) this.objs.push({ k:"bar", lane:this.safe, zw: zw + 2, len:.2 });
+      else for (let c = 0; c < 4; c++) this.objs.push({ k:"coin", lane:this.safe, zw: zw + .4 + c, len:.1, ph: c * .7 });
+      this.rows.push({ zw, safe: this.safe });
+      this.nextRow += ROW;
+    }
+  },
+  update(dt){
+    this.t += dt;
+    this.dist += dt * 9;
+    this.fill();
+    this.objs = this.objs.filter(o => o.zw + o.len - this.dist > .45);
+    this.rows = this.rows.filter(r => r.zw + ROW - this.dist > -1);
+    const row = this.rows.find(r => r.zw + TLEN + .5 - this.dist > ZP - .3);
+    const target = row ? row.safe : 0;
+    const d = target - this.laneF, step = dt * 6.5;
+    this.laneF += Math.abs(d) < step ? d : Math.sign(d) * step;
+    const lane = Math.round(this.laneF);
+    if (this.jumpH <= 0 && this.objs.some(o => o.k === "bar" && o.lane === lane && o.zw - this.dist - ZP > 0 && o.zw - this.dist - ZP < 1.3)) this.jumpV = 5.4;
+    if (this.jumpV !== 0 || this.jumpH > 0) {
+      this.jumpH += this.jumpV * dt; this.jumpV -= 15 * dt;
+      if (this.jumpH <= 0) { this.jumpH = 0; this.jumpV = 0; }
+    }
+    this.objs = this.objs.filter(o => {
+      if (o.k === "coin" && o.lane === lane && o.zw - this.dist < ZP + .1 && this.jumpH < .7) { this.coins++; return false; }
+      return true;
+    });
+  },
+  draw(){
+    const U = W * .36, hy = H * .2, gy = (H - hy) * .98;
+    const P = (x, z, up = 0) => { const s = 1 / z; return [W / 2 + x * U * s, hy + gy * s - up * U * s, s]; };
+    let g = cx.createLinearGradient(0, 0, 0, hy);
+    g.addColorStop(0, "#4fb3f2"); g.addColorStop(1, "#c5e9ff");
+    cx.fillStyle = g; cx.fillRect(0, 0, W, hy + 1);
+    cx.fillStyle = "#5b4f86";
+    this.city.forEach(b => cx.fillRect(W / 2 + b.x * W * .55, hy - b.h * H, b.w * W * .55 + 1, b.h * H + 1));
+    cx.fillStyle = "#8a7663"; cx.fillRect(0, hy, W, H - hy);
+    poly([P(-1.65, ZMAX), P(1.65, ZMAX), P(1.65, .6), P(-1.65, .6)], "#5f4f42");
+    /* side walls */
+    const off = this.dist % 3, base = Math.floor(this.dist / 3);
+    for (let k = 12; k >= 0; k--) {
+      const za = .6 + k * 3 - off, zb = za + 3;
+      if (zb < .6) continue;
+      const a = Math.max(za, .6);
+      const col = WALLS[(k + base) % WALLS.length];
+      [-1.8, 1.8].forEach(x => {
+        poly([P(x, a, 0), P(x, zb, 0), P(x, zb, 1.7), P(x, a, 1.7)], col);
+        poly([P(x, a, .7), P(x, zb, .7), P(x, zb, .95), P(x, a, .95)], "rgba(255,255,255,.28)");
+      });
+    }
+    /* sleepers + rails */
+    const so = this.dist % .7;
+    for (let k = 0; k < 44; k++) {
+      const z = .62 + k * .7 - so; if (z > ZMAX) break;
+      [-1, 0, 1].forEach(L => poly([P(L - .42, z), P(L + .42, z), P(L + .42, z + .14), P(L - .42, z + .14)], "#3f3128"));
+    }
+    [-1, 0, 1].forEach(L => [-.27, .27].forEach(o => {
+      const x = L + o;
+      poly([P(x - .025, ZMAX), P(x + .025, ZMAX), P(x + .025, .62), P(x - .025, .62)], "#d6d0c9");
+    }));
+    /* objects far → near, runner in between */
+    const list = this.objs.map(o => ({ o, z: o.zw - this.dist })).filter(e => e.z < ZMAX);
+    list.push({ o: { k:"me" }, z: ZP + .01 });
+    list.sort((a, b) => b.z - a.z);
+    list.forEach(({ o, z }) => {
+      if (o.k === "train") this.drawTrain(P, o, z);
+      else if (o.k === "bar") this.drawBar(P, o, z);
+      else if (o.k === "coin") this.drawCoin(P, o, z, U);
+      else this.drawMe(P, U);
+    });
+    hud("COINS", this.coins);
+  },
+  drawTrain(P, o, z){
+    const L = o.lane, hw = .43, ht = 1.25, z0 = Math.max(z, .62), z1 = z + o.len;
+    if (z1 <= .62) return;
+    if (L !== 0) { const sx = L < 0 ? L + hw : L - hw; poly([P(sx, z0), P(sx, z1), P(sx, z1, ht), P(sx, z0, ht)], o.col[1]); }
+    poly([P(L - hw, z0, ht), P(L + hw, z0, ht), P(L + hw, z1, ht), P(L - hw, z1, ht)], "#cfc9c3");
+    const a = P(L - hw, z0), b = P(L + hw, z0, ht), w = b[0] - a[0], h = a[1] - b[1];
+    cx.fillStyle = o.col[0]; cx.fillRect(a[0], b[1], w, h);
+    cx.fillStyle = "#1c2433"; cx.fillRect(a[0] + w * .12, b[1] + h * .12, w * .76, h * .3);
+    cx.fillStyle = "rgba(255,255,255,.25)"; cx.fillRect(a[0] + w * .16, b[1] + h * .15, w * .2, h * .06);
+    cx.fillStyle = "#fff"; cx.fillRect(a[0], b[1] + h * .55, w, h * .07);
+    cx.fillStyle = "#ffe9a3";
+    cx.beginPath(); cx.arc(a[0] + w * .2, b[1] + h * .8, w * .06, 0, 7); cx.arc(a[0] + w * .8, b[1] + h * .8, w * .06, 0, 7); cx.fill();
+  },
+  drawBar(P, o, z){
+    if (z < .62) return;
+    const L = o.lane;
+    [-.38, .32].forEach(x => { const a = P(L + x, z), b = P(L + x + .06, z, .62); cx.fillStyle = "#444"; cx.fillRect(a[0], b[1], b[0] - a[0], a[1] - b[1]); });
+    const a = P(L - .42, z, .36), b = P(L + .42, z, .6), w = b[0] - a[0], h = a[1] - b[1];
+    cx.fillStyle = "#fff"; cx.fillRect(a[0], b[1], w, h);
+    cx.fillStyle = "#e23c3c";
+    for (let i = 0; i < 5; i += 2) cx.fillRect(a[0] + w * i / 5, b[1], w / 5, h);
+  },
+  drawCoin(P, o, z, U){
+    if (z < .62) return;
+    const c = P(o.lane, z, .35), r = .11 * U * c[2], sx = Math.abs(Math.cos(this.t * 5 + o.ph)) * .85 + .15;
+    cx.fillStyle = "#ffd23f"; cx.strokeStyle = "#b67f00"; cx.lineWidth = Math.max(1, r * .2);
+    cx.beginPath(); cx.ellipse(c[0], c[1], r * sx, r, 0, 0, 7); cx.fill(); cx.stroke();
+  },
+  drawMe(P, U){
+    const g = P(this.laneF, ZP), p = P(this.laneF, ZP, this.jumpH), u = U * p[2], x = p[0], y = p[1];
+    cx.fillStyle = "rgba(0,0,0,.28)"; cx.beginPath(); cx.ellipse(g[0], g[1], u * .26, u * .07, 0, 0, 7); cx.fill();
+    const ph = this.t * 15, air = this.jumpH > 0;
+    const l1 = air ? .34 : .4 * (.78 + .22 * Math.sin(ph)), l2 = air ? .3 : .4 * (.78 - .22 * Math.sin(ph));
+    cx.fillStyle = "#26335e";
+    cx.fillRect(x - u * .14, y - u * .44, u * .11, u * l1 + u * .04);
+    cx.fillRect(x + u * .03, y - u * .44, u * .11, u * l2 + u * .04);
+    cx.fillStyle = "#fff";
+    cx.fillRect(x - u * .15, y - u * .44 + u * l1, u * .13, u * .06);
+    cx.fillRect(x + u * .02, y - u * .44 + u * l2, u * .13, u * .06);
+    cx.fillStyle = "#16c2b0";
+    const sw = Math.sin(ph) * u * .08;
+    cx.fillRect(x - u * .27, y - u * .82 + sw, u * .1, u * .32);
+    cx.fillRect(x + u * .17, y - u * .82 - sw, u * .1, u * .32);
+    cx.fillRect(x - u * .18, y - u * .86, u * .36, u * .46);
+    cx.fillStyle = "#0f8f82"; cx.fillRect(x - u * .1, y - u * .86, u * .2, u * .1);
+    cx.fillStyle = "#3b2516"; cx.beginPath(); cx.arc(x, y - u * .99, u * .14, 0, 7); cx.fill();
+    cx.fillStyle = "#e2463b"; cx.beginPath(); cx.arc(x, y - u * 1.02, u * .145, Math.PI, 0); cx.fill();
+    cx.fillRect(x - u * .08, y - u * 1.0, u * .16, u * .07);
+  }
+};
+
+/* ---- Block parkour ---- */
+const blocks = {
+  init(){
+    this.p = [{ x:-8, w:11, h:3 }];
+    while (this.p.length < 16) this.gen();
+    this.i = 0; this.t = 0; this.hops = 0; this.camX = 0; this.time = 0;
+    this.clouds = Array.from({ length: 7 }, (_, k) => ({ x: k * 6 + rnd(0, 3), y: rnd(.04, .22), w: Math.round(rnd(2, 4)) }));
+  },
+  gen(){
+    const l = this.p[this.p.length - 1];
+    const gap = Math.random() < .4 ? 2 : 1, w = Math.random() < .65 ? 1 : 2;
+    const h = Math.max(2, Math.min(5, l.h + Math.floor(Math.random() * 3) - 1));
+    this.p.push({ x: l.x + l.w + gap, w, h });
+  },
+  land(k){ const q = this.p[k]; return q.x + q.w - .5; },
+  dur(k){ return .2 + (this.land(k + 1) - this.land(k)) * .12; },
+  update(dt){
+    this.time += dt;
+    this.t += dt / this.dur(this.i);
+    while (this.t >= 1) {
+      this.t -= 1; this.i++; this.hops++;
+      while (this.p.length - this.i < 12) this.gen();
+      if (this.i > 4) { this.p.shift(); this.i--; }
+    }
+  },
+  pos(){
+    const a = this.land(this.i), b = this.land(this.i + 1), t = this.t;
+    const ha = this.p[this.i].h, hb = this.p[this.i + 1].h;
+    return { x: a + (b - a) * t, y: ha + (hb - ha) * t + (1.05 + Math.max(0, hb - ha) * .55) * 4 * t * (1 - t), air: t > .04 && t < .96 };
+  },
+  block(bx, by, B, type, seed){
+    const px = B / 4;
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      const n = hash(seed * 17 + r * 4 + c);
+      let col;
+      if (type === "grass" && (r === 0 || (r === 1 && n > .55))) col = n > .5 ? "#5fb43a" : (n > .2 ? "#4f9e2f" : "#6cc443");
+      else if (type === "stone") col = n > .6 ? "#8d8d8d" : (n > .25 ? "#7a7a7a" : "#6b6b6b");
+      else col = n > .6 ? "#8a5a35" : (n > .25 ? "#7a4e2c" : "#6a4223");
+      cx.fillStyle = col;
+      cx.fillRect(Math.floor(bx + c * px), Math.floor(by + r * px), Math.ceil(px) + 1, Math.ceil(px) + 1);
+    }
+  },
+  draw(){
+    const B = W / 7, base = H * .93, me = this.pos();
+    this.camX += ((me.x - 2.3) - this.camX) * .2;
+    const camX = this.camX;
+    const g = cx.createLinearGradient(0, 0, 0, base);
+    g.addColorStop(0, "#5aa6ff"); g.addColorStop(1, "#c9e8ff");
+    cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = "#fff3a6"; cx.fillRect(W * .74, H * .07, B * 1.1, B * 1.1);
+    cx.fillStyle = "#ffe25e"; cx.fillRect(W * .74 + B * .2, H * .07 + B * .2, B * .7, B * .7);
+    /* clouds */
+    cx.fillStyle = "rgba(255,255,255,.92)";
+    const span = 42;
+    this.clouds.forEach(c => {
+      let sx = ((c.x - camX * .15) % span + span) % span - 4;
+      cx.fillRect(sx * B * .6, c.y * H, c.w * B * .6, B * .28);
+      cx.fillRect((sx + .5) * B * .6, c.y * H - B * .2, (c.w - 1) * B * .6, B * .22);
+    });
+    /* far hills */
+    const hb = B * .55;
+    for (let j = Math.floor(camX * .45) - 1; j < Math.floor(camX * .45) + W / hb + 2; j++) {
+      const hh = 4 + Math.floor(hash(j) * 4) + Math.floor(hash(j * .37) * 2);
+      cx.fillStyle = "#79b88a"; cx.fillRect((j - camX * .45) * hb, base - hh * hb, hb + 1, hh * hb);
+      cx.fillStyle = "#6aa97b"; cx.fillRect((j - camX * .45) * hb, base - hh * hb, hb + 1, hb * .35);
+    }
+    /* lava */
+    cx.fillStyle = "#ff6a00"; cx.fillRect(0, base - B * .2, W, H - base + B * .2);
+    cx.fillStyle = "#ffb000";
+    for (let k = 0; k < 18; k++) {
+      const lx = ((k * 53 + this.time * 30 - camX * B * .9) % (W + 40) + W + 40) % (W + 40) - 20;
+      cx.fillRect(lx, base - B * .12 + (k % 3) * B * .1, B * .22, B * .08);
+    }
+    /* pillars */
+    this.p.forEach(q => {
+      for (let c = 0; c < q.w; c++) {
+        const bx = (q.x + c - camX) * B;
+        if (bx < -B || bx > W) continue;
+        for (let r = 0; r < q.h; r++) {
+          const type = r === q.h - 1 ? "grass" : (r >= q.h - 3 ? "dirt" : "stone");
+          this.block(bx, base - (r + 1) * B, B, type, (q.x + c) * 31 + r * 7);
+        }
+      }
+    });
+    /* player */
+    const sx = (me.x - camX) * B, sy = base - me.y * B, u = B;
+    const swing = me.air ? .5 : Math.sin(this.time * 16);
+    cx.fillStyle = "#3446a8";
+    cx.fillRect(sx - u * .2 + swing * u * .06, sy - u * .62, u * .19, u * .62);
+    cx.fillRect(sx + .01 * u - swing * u * .06, sy - u * .62, u * .19, u * .62);
+    cx.fillStyle = "#ff7a2f"; cx.fillRect(sx - u * .22, sy - u * 1.2, u * .44, u * .6);
+    cx.fillStyle = "#e0682a"; cx.fillRect(sx - u * .1 - swing * u * .1, sy - u * 1.16, u * .2, u * .5);
+    cx.fillStyle = "#e8b38a"; cx.fillRect(sx - u * .22, sy - u * 1.64, u * .44, u * .44);
+    cx.fillStyle = "#4a2f1b"; cx.fillRect(sx - u * .22, sy - u * 1.64, u * .44, u * .12); cx.fillRect(sx - u * .22, sy - u * 1.64, u * .1, u * .3);
+    cx.fillStyle = "#fff"; cx.fillRect(sx + u * .08, sy - u * 1.46, u * .1, u * .07);
+    cx.fillStyle = "#2a3b8f"; cx.fillRect(sx + u * .13, sy - u * 1.46, u * .05, u * .07);
+    hud("JUMPS", this.hops);
+  }
+};
+
+train.init(); blocks.init();
+function setMode(m){
+  mode = m === "block" ? "block" : "train";
+  $("modeTrain").setAttribute("aria-pressed", String(mode === "train"));
+  $("modeBlock").setAttribute("aria-pressed", String(mode === "block"));
+  store.set("eb27-mode", mode);
+}
+$("modeTrain").addEventListener("click", () => setMode("train"));
+$("modeBlock").addEventListener("click", () => setMode("block"));
+setMode(store.get("eb27-mode") || "train");
+
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(.05, (now - last) / 1000) * motion; last = now;
+  const m = mode === "train" ? train : blocks;
+  m.update(dt); m.draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ================= QUIZ ================= */
+const QUIZ = [
+  { q:"How many points is the castle gate worth?", a:["5","10","20","25"], k:2, why:"Gate = 2 standing stones + 1 flat stone on top, in a wall zone: 20 points. Only one gate per castle." },
+  { q:"How do you build a wall?", a:["1 standing stone","3 flat stones stacked","2 standing + 1 flat","Any 4 stones"], k:1, why:"A wall is 3 stones lying flat and stacked, inside a rectangle wall zone: 5 points." },
+  { q:"A full wall in its zone scores how much in total?", a:["5","6","8","23"], k:2, why:"3 stones × 1 point + 5 for the wall = 8 points." },
+  { q:"What is the maximum Grail score?", a:["10","20","25","30"], k:2, why:"5 for being in the castle + 4 levels × 5 = 25. Level 4 is on the robot roof, above 30 cm, with no actuator or fixing on it." },
+  { q:"When does the attack phase start?", a:["Second 0","Second 50","Second 85","Second 95"], k:2, why:"The attack phase runs from second 85 to the end. A SIMA that leaves the stable earlier is removed." },
+  { q:"3 of your cannonballs are in the enemy courtyard at the end. Points?", a:["5","15","20","30"], k:2, why:"5 for one ball + 15 extra for at least 3 balls = 20." },
+  { q:"Your main robot ends fully inside its throne room. Points?", a:["5","10","15","20"], k:1, why:"Fully inside = 10. Partly inside = 5. SIMAs do not count for this action." },
+  { q:"When can you take stones from the enemy castle?", a:["Any time","After second 85","Only when all quarries are empty","Never"], k:2, why:"Only when all stone quarries are empty, and without smashing their castle. Unfair play: at least −50 points." }
+];
+const quizEl = $("quiz"), scoreEl = $("score");
+let answered = 0, right = 0;
+function renderQuiz(){
+  quizEl.textContent = ""; answered = 0; right = 0; updateScore();
+  QUIZ.forEach((item, qi) => {
+    const li = document.createElement("li"); li.className = "q";
+    const p = document.createElement("p"); p.textContent = `${qi + 1}. ${item.q}`;
+    const box = document.createElement("div"); box.className = "answers";
+    const why = document.createElement("p"); why.className = "why"; why.hidden = true; why.textContent = item.why;
+    item.a.forEach((txt, ai) => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = txt; b.id = `q${qi}a${ai}`;
+      b.addEventListener("click", () => {
+        const btns = [...box.querySelectorAll("button")];
+        btns.forEach(x => x.disabled = true);
+        btns[item.k].classList.add("right");
+        if (ai !== item.k) b.classList.add("wrong"); else right++;
+        answered++; why.hidden = false; updateScore();
+      });
+      box.appendChild(b);
+    });
+    li.append(p, box, why); quizEl.appendChild(li);
+  });
+}
+function updateScore(){
+  scoreEl.textContent = `${right} / ${QUIZ.length}`;
+  if (answered === QUIZ.length) scoreEl.textContent += right === QUIZ.length ? " · W" : (right >= 6 ? " · solid" : " · rewatch");
+}
+$("quizReset").addEventListener("click", renderQuiz);
+renderQuiz();
+
+/* resting state */
+setChapter(0);
+setPlayUI();
+})();
+</script>
