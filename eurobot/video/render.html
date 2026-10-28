@@ -31,14 +31,15 @@ function hud(label, n){
 <script src="game.js"></script>
 <script>
 const GOLD = "#f7b500", BLUE = "#005b8c";
-let D, LINES, imgs = {}, words = [], frameNo = -1, mouth = { P: 0, S: 0 };
+let D, LINES, imgs = {}, SHOTS = {}, frameNo = -1, mouth = { P: 0, S: 0 };
 
 function loadImg(src){ return new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; }); }
 
-window.init = async (data, svgP, svgS) => {
+window.init = async (data, svgP, svgS, shots) => {
   D = data; LINES = D.lines;
   imgs.P = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgP));
   imgs.S = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgS));
+  for (const [k, s] of Object.entries(shots || {})) SHOTS[k] = { ...s, img: await loadImg(s.src) };
   await document.fonts.load('100px "Archivo Black"'); await document.fonts.load('100px Bungee');
   /* word timings: spread each line's speech window over its words, weighted by length and punctuation */
   LINES.forEach(l => {
@@ -83,7 +84,7 @@ function drawCaption(l, t){
   const sp = size * .42;
   let tw = up.reduce((a, w) => a + cx.measureText(w).width, 0) + sp * (up.length - 1);
   if (tw > W * .88) { size *= W * .88 / tw; cx.font = `${size}px "Archivo Black"`; tw = up.reduce((a, w) => a + cx.measureText(w).width, 0) + size * .42 * (up.length - 1); }
-  const y = H * .34;
+  const y = l.shot && SHOTS[l.shot] ? H * .17 : H * .34;
   cx.save(); cx.translate(W / 2, y); cx.scale(bump, bump); cx.translate(-W / 2, -y);
   let x = W / 2 - tw / 2;
   up.forEach((w, j) => {
@@ -142,7 +143,7 @@ function drawPop(l, t){
   if (dt < 0 || dt > 2.8) return;
   const s = dt < .3 ? back(dt / .3) : (dt > 2.55 ? 1 - ease((dt - 2.55) / .25) : 1);
   if (s <= 0) return;
-  const x = W * .76, y = H * .2;
+  const x = W * .76, y = l.shot ? H * .31 : H * .2;
   cx.save(); cx.translate(x, y); cx.rotate(6 * Math.PI / 180); cx.scale(s, s);
   cx.font = '104px Bungee'; const nw = cx.measureText(l.pop.n).width;
   cx.font = '38px "Archivo Black"'; const lw = cx.measureText(l.pop.l).width;
@@ -152,6 +153,30 @@ function drawPop(l, t){
   cx.fillStyle = l.pop.neg ? "#2a0000" : "#1a1300"; cx.textAlign = "center"; cx.textBaseline = "middle";
   cx.font = '104px Bungee'; cx.fillText(l.pop.n, 0, -22);
   cx.font = '38px "Archivo Black"'; cx.fillText(l.pop.l, 0, 58);
+  cx.restore();
+}
+
+/* screenshot from the rulebook, shown while a line talks about it */
+function drawShot(k, t){
+  const l = LINES[k], s = SHOTS[l.shot];
+  if (!s) return;
+  const next = LINES[k + 1];
+  let a = k > 0 && LINES[k - 1].shot === l.shot ? 1 : back((t - l.start) / .32);
+  if (next && next.shot !== l.shot) a *= Math.min(1, Math.max(0, (next.start - t) / .15));
+  if (a <= 0) return;
+  const pad = 22, maxW = W * .9 - pad * 2, maxH = H * .36 - pad * 2;
+  let iw = maxW, ih = iw * s.h / s.w;
+  if (ih > maxH) { ih = maxH; iw = ih * s.w / s.h; }
+  const cw = iw + pad * 2, ch = ih + pad * 2, top = H * .255;
+  cx.save(); cx.translate(W / 2, top + ch / 2); cx.rotate(-1.5 * Math.PI / 180); cx.scale(a, a);
+  cx.fillStyle = "#000"; rr(-cw / 2, -ch / 2 + 16, cw, ch, 22); cx.fill();
+  cx.fillStyle = "#fff"; rr(-cw / 2, -ch / 2, cw, ch, 22); cx.fill();
+  cx.drawImage(s.img, -iw / 2, -ih / 2, iw, ih);
+  cx.font = "28px Bungee"; cx.textAlign = "left"; cx.textBaseline = "middle";
+  const tw = cx.measureText(s.label).width + 32, tx = -cw / 2 + 18, ty = -ch / 2 - 30;
+  cx.fillStyle = "#000"; rr(tx, ty + 6, tw, 48, 12); cx.fill();
+  cx.fillStyle = GOLD; rr(tx, ty, tw, 48, 12); cx.fill();
+  cx.fillStyle = "#1a1300"; cx.fillText(s.label, tx + 16, ty + 26);
   cx.restore();
 }
 
@@ -214,6 +239,7 @@ window.frame = (n, q = .9) => {
 
   if (!outro) {
     drawTag(c);
+    if (l && l.shot) drawShot(k, t);
     if (l && t <= l.start + l.dur + .2) drawCaption(l, t);
     else if (l) drawCaption(l, l.start + l.dur);
     else {
