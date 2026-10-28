@@ -1,0 +1,10 @@
+fonts/
+wav/
+*.wav
+*.mp4
+*.jpg
+lines.json
+timeline.json
+peter.svg
+stewie.svg
+game.js

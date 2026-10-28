@@ -1,0 +1,234 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:"Archivo Black";src:url(fonts/ArchivoBlack.ttf)}
+@font-face{font-family:"Bungee";src:url(fonts/Bungee.ttf)}
+html,body{margin:0;background:#000}
+canvas{display:block}
+</style></head>
+<body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+/* deterministic randomness so every render is identical */
+let seed = 20270000;
+Math.random = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const cv = document.getElementById("c"), cx = cv.getContext("2d");
+const W = 1080, H = 1920, DPR = W / 400;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function poly(pts, fill){ cx.beginPath(); cx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) cx.lineTo(pts[i][0], pts[i][1]); cx.closePath(); cx.fillStyle = fill; cx.fill(); }
+function rr(x, y, w, h, r){ cx.beginPath(); cx.roundRect(x, y, w, h, r); }
+function hud(label, n){
+  const f = Math.round(13 * DPR);
+  cx.font = `${f}px Bungee`;
+  const txt = `${label} ${n}`, tw = cx.measureText(txt).width;
+  const x = W - tw - 30 * DPR, y = 14 * DPR, h = 24 * DPR;
+  cx.fillStyle = "rgba(10,8,18,.78)"; rr(x - 12 * DPR, y, tw + 30 * DPR, h, 6 * DPR); cx.fill();
+  cx.fillStyle = "#ffd23f"; cx.beginPath(); cx.arc(x, y + h / 2, 5 * DPR, 0, Math.PI * 2); cx.fill();
+  cx.fillStyle = "#fff"; cx.textBaseline = "middle"; cx.textAlign = "left"; cx.fillText(txt, x + 10 * DPR, y + h / 2 + DPR);
+}
+</script>
+<script src="game.js"></script>
+<script>
+const GOLD = "#f7b500", BLUE = "#005b8c";
+let D, LINES, imgs = {}, words = [], frameNo = -1, mouth = { P: 0, S: 0 };
+
+function loadImg(src){ return new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; }); }
+
+window.init = async (data, svgP, svgS) => {
+  D = data; LINES = D.lines;
+  imgs.P = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgP));
+  imgs.S = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgS));
+  await document.fonts.load('100px "Archivo Black"'); await document.fonts.load('100px Bungee');
+  /* word timings: spread each line's speech window over its words, weighted by length and punctuation */
+  LINES.forEach(l => {
+    const ws = l.t.split(/\s+/).filter(Boolean);
+    const wt = ws.map(w => w.length + 2 + (/[.!?]$/.test(w) ? 6 : /[,;:]$/.test(w) ? 3 : 0));
+    const sum = wt.reduce((a, b) => a + b, 0), span = l.speech[1] - l.speech[0];
+    let acc = 0;
+    l.words = ws; l.wstart = wt.map(x => { const s = l.speech[0] + acc / sum * span; acc += x; return s; });
+    const chunkOf = []; let ch = 0, len = 0, cnt = 0;
+    ws.forEach((w, i) => { if (cnt > 0 && (len + w.length > 15 || cnt >= 3)) { ch++; len = 0; cnt = 0; } chunkOf[i] = ch; len += w.length + 1; cnt++; });
+    l.chunkOf = chunkOf;
+    if (l.pop) l.popAt = l.wstart[Math.floor(ws.length * .45)];
+  });
+  train.init(); blocks.init();
+  return true;
+};
+
+const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+const back = x => { x = Math.min(1, Math.max(0, x)); const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+
+function lineAt(t){ let k = -1; for (let i = 0; i < LINES.length; i++) { if (LINES[i].start <= t) k = i; else break; } return k; }
+
+function text(str, x, y, size, fill, opts = {}){
+  cx.font = `${size}px ${opts.font || '"Archivo Black"'}`;
+  cx.textAlign = opts.align || "center"; cx.textBaseline = "middle";
+  cx.lineJoin = "round";
+  if (opts.stroke !== false) {
+    cx.fillStyle = "#000"; cx.fillText(str, x, y + size * .07);
+    cx.strokeStyle = "#000"; cx.lineWidth = size * .2; cx.strokeText(str, x, y);
+  }
+  cx.fillStyle = fill; cx.fillText(str, x, y);
+}
+
+function drawCaption(l, t){
+  let k = 0; for (let i = 0; i < l.words.length; i++) if (l.wstart[i] <= t) k = i;
+  const ch = l.chunkOf[k], idx = l.words.map((w, i) => i).filter(i => l.chunkOf[i] === ch);
+  const chStart = l.wstart[idx[0]];
+  const bump = .86 + .14 * ease((t - chStart) / .18);
+  let size = 112;
+  cx.font = `${size}px "Archivo Black"`;
+  const up = idx.map(i => l.words[i].toUpperCase());
+  const sp = size * .42;
+  let tw = up.reduce((a, w) => a + cx.measureText(w).width, 0) + sp * (up.length - 1);
+  if (tw > W * .88) { size *= W * .88 / tw; cx.font = `${size}px "Archivo Black"`; tw = up.reduce((a, w) => a + cx.measureText(w).width, 0) + size * .42 * (up.length - 1); }
+  const y = H * .34;
+  cx.save(); cx.translate(W / 2, y); cx.scale(bump, bump); cx.translate(-W / 2, -y);
+  let x = W / 2 - tw / 2;
+  up.forEach((w, j) => {
+    const ww = cx.measureText(w).width, on = idx[j] === k;
+    cx.save();
+    if (on) { cx.translate(x + ww / 2, y); cx.scale(1.08, 1.08); cx.translate(-(x + ww / 2), -y); }
+    text(w, x + ww / 2, y, size, on ? GOLD : "#fff");
+    cx.restore();
+    cx.font = `${size}px "Archivo Black"`;
+    x += ww + size * .42;
+  });
+  cx.restore();
+}
+
+function drawChar(who, show, m, bob){
+  const img = imgs[who], isP = who === "P";
+  const w = W * (isP ? .54 : .5), h = w * img.height / img.width;
+  const x = isP ? -W * .03 : W - w + W * .02;
+  const y = H * 1.02 - h + h * .6 * (1 - show) + bob;
+  if (show <= .01) return;
+  cx.save();
+  cx.shadowColor = "rgba(0,0,0,.35)"; cx.shadowOffsetY = 20;
+  cx.drawImage(img, x, y, w, h);
+  cx.restore();
+  const s = w / 200;
+  const [mx, my, rx, ry] = isP ? [100, 142, 15, 6] : [100, 132, 11, 4.5];
+  cx.fillStyle = "#5b1f22";
+  cx.beginPath(); cx.ellipse(x + mx * s, y + my * s, rx * s * (1 + m * .15), Math.max(1.5, ry * s * (.3 + m * 1.7)), 0, 0, 7); cx.fill();
+  /* name label */
+  const label = isP ? "PETER" : "STEWIE", f = 34;
+  cx.save();
+  cx.font = `${f}px Bungee`;
+  const lw = cx.measureText(label).width + 30;
+  const lx = isP ? x + w * .18 : x + w - w * .16 - lw, ly = y + h * .02;
+  cx.translate(lx + lw / 2, ly + 26); cx.rotate((isP ? -5 : 5) * Math.PI / 180);
+  cx.fillStyle = "#000"; rr(-lw / 2, -26 + 8, lw, 52, 14); cx.fill();
+  cx.fillStyle = isP ? GOLD : BLUE; rr(-lw / 2, -26, lw, 52, 14); cx.fill();
+  cx.fillStyle = isP ? "#1a1300" : "#fff"; cx.textAlign = "center"; cx.textBaseline = "middle"; cx.fillText(label, 0, 3);
+  cx.restore();
+}
+
+function drawTag(c){
+  const f = 30, pad = 18, y = 38, h = 58;
+  cx.font = `${f}px Bungee`; cx.textBaseline = "middle"; cx.textAlign = "left";
+  const a = `PART ${c + 1}/${D.chapters.length}`, b = D.chapters[c].toUpperCase();
+  const aw = cx.measureText(a).width + pad * 2, bw = cx.measureText(b).width + pad * 2;
+  cx.fillStyle = GOLD; rr(38, y, aw, h, 14); cx.fill();
+  cx.fillStyle = "#1a1300"; cx.fillText(a, 38 + pad, y + h / 2 + 2);
+  cx.fillStyle = "rgba(10,8,18,.8)"; rr(38 + aw + 14, y, bw, h, 14); cx.fill();
+  cx.fillStyle = "#fff"; cx.fillText(b, 38 + aw + 14 + pad, y + h / 2 + 2);
+}
+
+function drawPop(l, t){
+  if (!l || !l.pop) return;
+  const dt = t - l.popAt;
+  if (dt < 0 || dt > 2.8) return;
+  const s = dt < .3 ? back(dt / .3) : (dt > 2.55 ? 1 - ease((dt - 2.55) / .25) : 1);
+  if (s <= 0) return;
+  const x = W * .76, y = H * .2;
+  cx.save(); cx.translate(x, y); cx.rotate(6 * Math.PI / 180); cx.scale(s, s);
+  cx.font = '104px Bungee'; const nw = cx.measureText(l.pop.n).width;
+  cx.font = '38px "Archivo Black"'; const lw = cx.measureText(l.pop.l).width;
+  const w = Math.max(nw, lw) + 70, h = 190;
+  cx.fillStyle = "#000"; rr(-w / 2, -h / 2 + 16, w, h, 34); cx.fill();
+  cx.fillStyle = l.pop.neg ? "#ff6b6b" : GOLD; rr(-w / 2, -h / 2, w, h, 34); cx.fill();
+  cx.fillStyle = l.pop.neg ? "#2a0000" : "#1a1300"; cx.textAlign = "center"; cx.textBaseline = "middle";
+  cx.font = '104px Bungee'; cx.fillText(l.pop.n, 0, -22);
+  cx.font = '38px "Archivo Black"'; cx.fillText(l.pop.l, 0, 58);
+  cx.restore();
+}
+
+const SHEET = [
+  ["BUILD CAMELOT", [["Stone in a construction zone", "+1"], ["Wall (3 flat, stacked)", "+5"], ["Tower (1 standing)", "+5"], ["Gate (2 standing + 1 flat)", "+20"]]],
+  ["THE GRAIL", [["Grail in your castle", "+5"], ["Per level (max 4)", "+5"]]],
+  ["RETURN OF THE KING", [["Main robot partly home", "+5"], ["Main robot fully home", "+10"]]],
+  ["TO THE ATTACK", [["Per enemy moat occupied", "+5"], ["SIMA attacks enemy SIMA", "+5"], ["1 ball in enemy courtyard", "+5"], ["3+ balls (extra)", "+15"]]]
+];
+function drawOutro(t){
+  const a = ease((t - D.outroStart) / .5);
+  cx.fillStyle = `rgba(12,10,20,${.86 * a})`; cx.fillRect(0, 0, W, H);
+  if (a < .05) return;
+  cx.save(); cx.globalAlpha = a;
+  text("POINTS", W / 2, 200, 120, GOLD, { font: "Bungee" });
+  text("CHEAT SHEET", W / 2, 320, 84, "#fff", { font: "Bungee" });
+  let y = 470;
+  SHEET.forEach(([g, rows]) => {
+    cx.font = '44px Bungee'; cx.textAlign = "left"; cx.textBaseline = "middle"; cx.fillStyle = "#46a3e0"; cx.fillText(g, 90, y); y += 70;
+    rows.forEach(([lbl, p]) => {
+      cx.font = '40px "Archivo Black"'; cx.fillStyle = "#f5f1fc"; cx.textAlign = "left"; cx.fillText(lbl, 90, y);
+      cx.font = '44px Bungee'; cx.fillStyle = GOLD; cx.textAlign = "right"; cx.fillText(p, W - 90, y);
+      y += 62;
+    });
+    y += 34;
+  });
+  cx.font = '34px "Archivo Black"'; cx.fillStyle = "#ff6b6b"; cx.textAlign = "left"; cx.fillText("Unfair play", 90, y);
+  cx.font = '40px Bungee'; cx.textAlign = "right"; cx.fillText("-50 MIN", W - 90, y);
+  cx.font = '28px "Archivo Black"'; cx.fillStyle = "#aaa3c4"; cx.textAlign = "center";
+  cx.fillText("Source: Eurobot 2027 Rules, OFFICIAL 1.0", W / 2, H - 120);
+  cx.restore();
+}
+
+window.frame = (n, q = .9) => {
+  while (frameNo < n) {
+    frameNo++;
+    const t = frameNo / D.fps, k = lineAt(t), c = k < 0 ? 0 : LINES[k].c;
+    (c % 2 === 0 ? train : blocks).update(1 / D.fps);
+  }
+  const t = n / D.fps, k = lineAt(t), l = k >= 0 ? LINES[k] : null, outro = t >= D.outroStart;
+  const c = l ? l.c : 0;
+  (c % 2 === 0 ? train : blocks).draw();
+
+  /* character visibility: slide speaker in, other out */
+  const env = D.env[Math.min(n, D.env.length - 1)] || 0;
+  ["P", "S"].forEach(who => {
+    let show;
+    if (!l) show = 1;
+    else {
+      const prev = k > 0 ? LINES[k - 1].s : null;
+      const since = t - l.start;
+      if (l.s === who) show = prev === who ? 1 : ease(since / .28);
+      else show = prev === who ? 1 - ease(since / .22) : 0;
+    }
+    if (outro) show = 0;
+    const speaking = l && l.s === who && t >= l.speech[0] - .03 && t <= l.speech[1] + .05;
+    mouth[who] += ((speaking ? env : 0) - mouth[who]) * .6;
+    drawChar(who, show, mouth[who], speaking ? -Math.abs(Math.sin(t * 9)) * 14 * Math.min(1, env * 2) : 0);
+  });
+
+  if (!outro) {
+    drawTag(c);
+    if (l && t <= l.start + l.dur + .2) drawCaption(l, t);
+    else if (l) drawCaption(l, l.start + l.dur);
+    else {
+      const a = ease(t / .3);
+      cx.save(); cx.globalAlpha = a;
+      text("EUROBOT 2027", W / 2, H * .3, 118, GOLD);
+      text("RULES EXPLAINED", W / 2, H * .3 + 140, 92, "#fff");
+      cx.restore();
+    }
+    drawPop(l, t);
+  } else drawOutro(t);
+
+  cx.fillStyle = "rgba(255,255,255,.18)"; cx.fillRect(0, H - 14, W, 14);
+  cx.fillStyle = GOLD; cx.fillRect(0, H - 14, W * Math.min(1, t / D.total), 14);
+  return cv.toDataURL("image/jpeg", q);
+};
+</script>
+</body></html>
