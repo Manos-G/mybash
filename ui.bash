@@ -3,7 +3,7 @@
 # UI: prompt, colors, completion, appearance
 #######################################################
 
-if [ -f /usr/bin/fastfetch ]; then
+if [[ $- == *i* ]] && [ -f /usr/bin/fastfetch ]; then
 	fastfetch
 fi
 
@@ -49,4 +49,18 @@ elif [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
     source /usr/share/doc/fzf/examples/key-bindings.bash
 elif [ -f ~/.fzf.bash ]; then
     source ~/.fzf.bash
+fi
+
+# Print a help reminder when entering a git repo (or opening a shell inside one)
+_mybash_repo_help() {
+	local status=$? top
+	top=$(git rev-parse --show-toplevel 2>/dev/null)
+	if [ -n "$top" ] && [ "$top" != "$_MYBASH_LAST_REPO" ]; then
+		echo -e "\e[2mHelp: rh (ROS 2 commands) | full list: $MYBASH_DIR/COMMANDS.md\e[0m"
+	fi
+	_MYBASH_LAST_REPO=$top
+	return "$status"
+}
+if [[ $- == *i* ]]; then
+	PROMPT_COMMAND="${PROMPT_COMMAND%;}${PROMPT_COMMAND:+;}_mybash_repo_help"
 fi
