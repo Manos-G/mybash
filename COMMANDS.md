@@ -169,11 +169,26 @@ After running `./git-setup.sh` once, these **git subcommands** are also availabl
 | `cbps <pkg>` | `colcon build --symlink-install --packages-select` |
 | `cl` | Clean the workspace (`rm -rf install build log`) |
 | `tl` | `ros2 topic list` |
-| `te <topic>` | `ros2 topic echo` |
+| `te` | Alias for `rtop` |
 | `run` | `ros2 run` |
 | `la` | `ros2 launch` |
 | `killros` | Kill lingering ROS and Gazebo processes (function) |
 | `rosid [id]` | Show or set `ROS_DOMAIN_ID` for the current shell (function) |
+| `kr` | Alias for `killros` |
+| `ros_help` / `rh` | Print the ROS 2 command cheat sheet |
+| `rtop` | Pick a topic with fzf and echo it |
+| `ti` | Pick a topic with fzf and view its info |
+| `hz` | Pick a topic with fzf and measure its publish rate |
+| `rbag` | Pick topics with fzf (TAB for multiple) and record a bag |
+| `rnode` | Pick a node with fzf and view its info |
+| `rparam` | Pick a node and parameter with fzf, then get its value |
+| `rservice` | Pick a service with fzf and view its info |
+| `raction` | Pick an action with fzf and view its info |
+| `rshow` | Pick a message/service/action with fzf and show its definition |
+| `rpkg` | Pick a package with fzf and jump to it (`colcon_cd`) |
+| `rrun` | Pick a package and executable with fzf, then run it |
+| `rlaunch` | Pick a package and launch file with fzf, then launch it |
+| `clb` | Pick a package with fzf and clean it from `build/`, `install/` and `log/` |
 
 ## Keybindings (`ui.bash`, `history.bash`)
 
