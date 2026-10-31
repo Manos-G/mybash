@@ -46,8 +46,23 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 # Edit this .bashrc file
 alias ebrc='edit ~/.bashrc'
 
-# Show help for this .bashrc file
-alias hlp='less ~/.bashrc_help'
+# Print a cheat sheet of every command, generated from COMMANDS.md
+hlp() {
+	echo -e "\e[1;32mCustom Commands Help\e[0m"
+	awk -F'|' '
+		/^## / { sub(/^## /, ""); gsub(/`/, ""); printf "\n\033[1;34m%s\033[0m\n", $0; next }
+		/^\|/ {
+			gsub(/\\\|/, "\001")
+			if ($2 ~ /^ *Command *$/ || $2 ~ /^ *(Key|Keybinding|Binding) *$/ || $2 ~ /^ *-+ *$/) next
+			cmd = $2; desc = $3
+			gsub(/^ +| +$/, "", cmd); gsub(/^ +| +$/, "", desc)
+			gsub(/[`*]/, "", cmd); gsub(/[`*]/, "", desc)
+			gsub(/\001/, "|", cmd); gsub(/\001/, "|", desc)
+			printf "  \033[1;36m%-22s\033[0m : %s\n", cmd, desc
+		}
+	' "$MYBASH_DIR/COMMANDS.md"
+	echo ""
+}
 
 # alias to show the date
 alias da='date "+%Y-%m-%d %A %T %Z"'
@@ -80,8 +95,20 @@ alias .....='cd ../../../..'
 # cd into the old directory
 alias bd='cd "$OLDPWD"'
 
-# Print the full path of the current directory
-alias path='pwd'
+# Print the full path of the current directory and copy it to the clipboard
+path() {
+	pwd
+	# Clipboard tools stay running to serve the selection, so detach their output
+	if [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy &> /dev/null; then
+		pwd | tr -d '\n' | wl-copy &> /dev/null
+	elif [ -n "$DISPLAY" ] && command -v xclip &> /dev/null; then
+		pwd | tr -d '\n' | xclip -selection clipboard &> /dev/null
+	elif [ -n "$DISPLAY" ] && command -v xsel &> /dev/null; then
+		pwd | tr -d '\n' | xsel --clipboard --input &> /dev/null
+	else
+		echo "path: no clipboard available, not copied" >&2
+	fi
+}
 
 # Remove a directory and all files
 alias rmd='/bin/rm  --recursive --force --verbose '

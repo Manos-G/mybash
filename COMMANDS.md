@@ -26,7 +26,7 @@ grouped by the module they live in.
 | `mvg <file> <dir>` | Move a file, then `cd` into the destination |
 | `mkdirg <dir>` | Make a directory, then `cd` into it |
 | `pwdtail` | Print the last two components of the working directory |
-| `path` | Print the full path of the working directory (`pwd`) |
+| `path` | Print the full path of the working directory and copy it to the clipboard (function) |
 
 ## Listing — eza-backed (`aliases.bash`)
 
@@ -124,7 +124,7 @@ Falls back to plain `ls` (with equivalent flags) if `eza` is not installed.
 | `svi` | `sudo vi` |
 | `spico` / `snano` | `sudo pico` / `sudo nano` |
 | `ebrc` | Edit `~/.bashrc` |
-| `hlp` | Show `~/.bashrc_help` |
+| `hlp` | Print this command reference as a cheat sheet |
 
 ## Terminal Tools (`aliases.bash`, `functions.bash`)
 
