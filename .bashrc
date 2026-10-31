@@ -51,3 +51,5 @@ for module in functions aliases history ui git ros2; do
 done
 
 unset module
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
