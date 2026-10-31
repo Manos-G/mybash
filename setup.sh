@@ -430,6 +430,10 @@ create_fastfetch_config() {
         echo "${RED}Failed to create symbolic link for fastfetch config${RC}"
         exit 1
     }
+    ln -svf "$GITPATH/hmu_h.txt" "$USER_HOME/.config/fastfetch/hmu_h.txt" || {
+        echo "${RED}Failed to create symbolic link for fastfetch logo${RC}"
+        exit 1
+    }
 }
 
 linkConfig() {
