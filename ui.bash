@@ -51,16 +51,21 @@ elif [ -f ~/.fzf.bash ]; then
     source ~/.fzf.bash
 fi
 
-# Print a help reminder when entering a git repo (or opening a shell inside one)
+# Print a help reminder in every new terminal, and again when entering a git repo
+_mybash_help_line() {
+	echo -e "\e[1;33mHelp: rh (ROS 2 commands) | hlp (all commands)\e[0m"
+}
 _mybash_repo_help() {
 	local status=$? top
 	top=$(git rev-parse --show-toplevel 2>/dev/null)
 	if [ -n "$top" ] && [ "$top" != "$_MYBASH_LAST_REPO" ]; then
-		echo -e "\e[2mHelp: rh (ROS 2 commands) | full list: $MYBASH_DIR/COMMANDS.md\e[0m"
+		_mybash_help_line
 	fi
 	_MYBASH_LAST_REPO=$top
 	return "$status"
 }
 if [[ $- == *i* ]]; then
+	_mybash_help_line
+	_MYBASH_LAST_REPO=$(git rev-parse --show-toplevel 2>/dev/null)
 	PROMPT_COMMAND="${PROMPT_COMMAND%;}${PROMPT_COMMAND:+;}_mybash_repo_help"
 fi
