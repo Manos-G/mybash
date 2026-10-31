@@ -80,6 +80,9 @@ alias .....='cd ../../../..'
 # cd into the old directory
 alias bd='cd "$OLDPWD"'
 
+# Print the full path of the current directory
+alias path='pwd'
+
 # Remove a directory and all files
 alias rmd='/bin/rm  --recursive --force --verbose '
 

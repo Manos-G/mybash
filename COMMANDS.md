@@ -26,6 +26,7 @@ grouped by the module they live in.
 | `mvg <file> <dir>` | Move a file, then `cd` into the destination |
 | `mkdirg <dir>` | Make a directory, then `cd` into it |
 | `pwdtail` | Print the last two components of the working directory |
+| `path` | Print the full path of the working directory (`pwd`) |
 
 ## Listing — eza-backed (`aliases.bash`)
 
