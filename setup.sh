@@ -99,7 +99,7 @@ checkEnv() {
 
 installDepend() {
     ## Check for dependencies.
-    DEPENDENCIES='bash bash-completion tar bat tree multitail wget unzip fontconfig btop'
+    DEPENDENCIES='bash bash-completion tar bat tree multitail wget unzip fontconfig btop trash-cli nano xclip'
     if ! command_exists nvim; then
         DEPENDENCIES="${DEPENDENCIES} neovim"
     fi
@@ -240,7 +240,10 @@ installYazi() {
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             . "$HOME/.cargo/env"
         fi
-        cargo install --locked yazi-fm yazi-cli
+        # yazi-fm/yazi-cli can't be built directly from crates.io (their own
+        # build.rs refuses); the crates.io-published fix is to install the
+        # yazi-build meta-crate with --force instead.
+        cargo install --locked --force yazi-build
     fi
 }
 
@@ -254,7 +257,14 @@ installFastfetch() {
     case "$PACKAGER" in
         apt|nala)
             ## Not in older Debian/Ubuntu repos, grab the latest .deb from GitHub.
-            FASTFETCH_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep "browser_download_url.*linux-amd64.deb" | cut -d '"' -f 4)
+            ## Pick the asset that matches this machine's architecture.
+            case "$(uname -m)" in
+                x86_64)          FF_ARCH="amd64" ;;
+                aarch64|arm64)   FF_ARCH="aarch64" ;;
+                armv7l)          FF_ARCH="armv7l" ;;
+                *)               FF_ARCH="amd64" ;;
+            esac
+            FASTFETCH_URL=$(curl -s https://api.github.com/repos/fastfetch-cli/fastfetch/releases/latest | grep "browser_download_url.*linux-${FF_ARCH}.deb" | cut -d '"' -f 4)
             if [ -n "$FASTFETCH_URL" ]; then
                 TEMP_DIR=$(mktemp -d)
                 curl -sL "$FASTFETCH_URL" -o "$TEMP_DIR/fastfetch.deb"
@@ -334,9 +344,16 @@ installLazygit() {
     fi
 
     echo "${YELLOW}Installing lazygit...${RC}"
+    ## Pick the release asset that matches this machine's architecture.
+    case "$(uname -m)" in
+        x86_64)          LG_ARCH="x86_64" ;;
+        aarch64|arm64)   LG_ARCH="arm64" ;;
+        armv7l|armv6l)   LG_ARCH="armv6" ;;
+        *)               LG_ARCH="x86_64" ;;
+    esac
     LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
     TEMP_DIR=$(mktemp -d)
-    curl -Lo "$TEMP_DIR/lazygit.tar.gz" "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    curl -Lo "$TEMP_DIR/lazygit.tar.gz" "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_linux_${LG_ARCH}.tar.gz"
     tar xf "$TEMP_DIR/lazygit.tar.gz" -C "$TEMP_DIR" lazygit
     ${SUDO_CMD} install "$TEMP_DIR/lazygit" /usr/local/bin
     rm -rf "$TEMP_DIR"
@@ -356,7 +373,7 @@ installStarshipAndFzf() {
     if command_exists starship; then
         echo "Starship already installed"
     elif
-        ! curl -sS https://starship.rs/install.sh | sh; then
+        ! curl -sS https://starship.rs/install.sh | sh -s -- --yes; then
         echo "${RED}Something went wrong during starship install!${RC}"
         exit 1
     fi
@@ -375,9 +392,38 @@ installZoxide() {
         return
     fi
 
-    if ! curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh; then
-        echo "${RED}Something went wrong during zoxide install!${RC}"
-        exit 1
+    echo "${YELLOW}Installing zoxide...${RC}"
+    case "$PACKAGER" in
+        pacman)
+            if command_exists yay; then
+                yay --noconfirm -S zoxide || true
+            elif command_exists paru; then
+                paru --noconfirm -S zoxide || true
+            else
+                ${SUDO_CMD} ${PACKAGER} --noconfirm -S zoxide || true
+            fi
+            ;;
+        emerge)
+            ${SUDO_CMD} ${PACKAGER} -v app-shells/zoxide || true
+            ;;
+        nix-env)
+            ${SUDO_CMD} ${PACKAGER} -iA nixos.zoxide || true
+            ;;
+        nala|dnf)
+            ${SUDO_CMD} ${PACKAGER} install -y zoxide || true
+            ;;
+        *)
+            ${SUDO_CMD} ${PACKAGER} install -yq zoxide || true
+            ;;
+    esac
+
+    ## Fall back to the upstream install script if the package manager didn't provide zoxide.
+    if ! command_exists zoxide; then
+        echo "${YELLOW}Zoxide not available from package manager, installing via upstream script...${RC}"
+        if ! curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh; then
+            echo "${RED}Something went wrong during zoxide install!${RC}"
+            exit 1
+        fi
     fi
 }
 
@@ -411,6 +457,16 @@ install_additional_dependencies() {
         *)
             echo "No supported package manager found. Please install neovim manually."
             exit 1
+            ;;
+    esac
+}
+
+installRosTools() {
+    ## colcon_cd powers the rpkg command; it comes from the ROS apt repository.
+    case "$PACKAGER" in
+        apt|nala)
+            ${SUDO_CMD} ${PACKAGER} install -y python3-colcon-cd || \
+                echo "${YELLOW}python3-colcon-cd not installed; rpkg needs it once ROS 2 is set up${RC}"
             ;;
     esac
 }
@@ -494,6 +550,7 @@ installLazydocker
 installStarshipAndFzf
 installZoxide
 install_additional_dependencies
+installRosTools
 create_fastfetch_config
 
 if linkConfig; then
