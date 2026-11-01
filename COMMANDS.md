@@ -169,7 +169,7 @@ After running `./git-setup.sh` once, these **git subcommands** are also availabl
 | `cbps <pkg>` | `colcon build --symlink-install --packages-select` |
 | `cl` | Clean the workspace (`rm -rf install build log`) |
 | `tl` | `ros2 topic list` |
-| `te` | Alias for `rtop` |
+| `te [topic]` | Echo the named topic, or pick one with fzf if no name is given |
 | `run` | `ros2 run` |
 | `la` | `ros2 launch` |
 | `killros` | Kill lingering ROS and Gazebo processes (function) |

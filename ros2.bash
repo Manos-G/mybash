@@ -16,10 +16,9 @@ alias cbs='colcon build --symlink-install'
 alias cbp='colcon build --packages-select'
 alias cbps='colcon build --symlink-install --packages-select'
 
-alias cl='rm -rf install build log'
+alias cl='command rm -rf install build log'
 
 alias tl='ros2 topic list'
-alias te='rtop' #'ros2 topic echo'
 
 alias run='ros2 run'
 alias la='ros2 launch'
@@ -99,6 +98,15 @@ rtop() {
   fi
 }
 
+# Echo the named topic, or pick one interactively if no name is given
+te() {
+  if [ -n "$1" ]; then
+    ros2 topic echo "$@"
+  else
+    rtop
+  fi
+}
+
 # Interactively view node info
 rnode() {
   local node=$(ros2 node list | fzf --prompt="Node Info> " --height=40% --layout=reverse)
@@ -136,11 +144,11 @@ clb() {
   
   if [ -n "$pkg" ]; then
     echo "Cleaning build and install folders for: $pkg"
-    rm -rf "build/$pkg" "install/$pkg"
+    command rm -rf "build/$pkg" "install/$pkg"
     
     # Also clean the log folder for this package if it exists
     if [ -d "log/$pkg" ]; then
-      rm -rf "log/$pkg"
+      command rm -rf "log/$pkg"
     fi
     
     echo "Done."
@@ -217,7 +225,7 @@ ros_help() {
 
     echo -e "\n\e[1;34mTopics (fzf)\e[0m"
     _ros_help_row "rtop" "Pick a topic and echo it"
-    _ros_help_row "te" "Alias for rtop"
+    _ros_help_row "te" "Echo the named topic, or pick one if no name is given"
     _ros_help_row "ti" "Pick a topic and view its info"
     _ros_help_row "hz" "Pick a topic and measure its publish rate"
     _ros_help_row "rbag" "Pick topics (TAB for multiple) and record a bag"
