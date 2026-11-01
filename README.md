@@ -8,6 +8,56 @@ sudo apt install fzf
 
 
 
+## Cheat Sheet
+
+Type `rh` for the ROS 2 commands or `hlp` for every command. A reminder prints
+in each new terminal and whenever you enter a git repo. Commands marked "pick"
+open an fzf list: type to filter, Enter to choose.
+
+### ROS 2: inspect and debug
+
+| Command | What it does |
+| --- | --- |
+| `te [topic]` | Echo the named topic, or pick one |
+| `rtop` | Pick a topic and echo it |
+| `tl` | List topics |
+| `ti` | Pick a topic and show its info |
+| `hz` | Pick a topic and measure its rate |
+| `rbag` | Pick topics (TAB for several) and record a bag |
+| `rnode` | Pick a node and show its info |
+| `rparam` | Pick a node and parameter, then get its value |
+| `rservice` | Pick a service and show its info |
+| `raction` | Pick an action and show its info |
+| `rshow` | Pick a message, service or action and show its definition |
+
+### ROS 2: build and run
+
+| Command | What it does |
+| --- | --- |
+| `cb` / `cbs` | `colcon build` / with `--symlink-install` |
+| `cbp <pkg>` / `cbps <pkg>` | Build one package / with `--symlink-install` |
+| `si` / `so` | Source the local workspace / the ROS distro |
+| `cl` | Permanently delete `install`, `build` and `log` |
+| `clb` | Pick one package and permanently delete its build output (run from the workspace root) |
+| `run` / `la` | `ros2 run` / `ros2 launch` |
+| `rrun` | Pick a package and executable, then run it |
+| `rlaunch` | Pick a package and launch file, then launch it |
+| `rpkg` | Pick a package and jump to its folder (needs `python3-colcon-cd`) |
+| `rosid [id]` | Show or set `ROS_DOMAIN_ID` for this shell |
+| `killros` / `kr` | Force kill ROS and Gazebo processes (matches anything with "ros" in its command line, so check first) |
+
+### Everyday
+
+| Command | What it does |
+| --- | --- |
+| `path` | Print the current path and copy it to the clipboard |
+| `hlp` / `rh` | Print all commands / the ROS 2 commands |
+| `z <name>` / `zi` / `Ctrl+f` | Jump to a frequent folder / pick one |
+| `Ctrl+r` | Search command history with fzf |
+| `up <n>` | Go up `n` directories |
+| `extract <file>` | Unpack almost any archive |
+| `gcom "msg"` / `lazyg "msg"` | Add and commit / add, commit and push |
+
 ## Custom Commands
 
 See **[COMMANDS.md](COMMANDS.md)** for a full reference of every custom alias
