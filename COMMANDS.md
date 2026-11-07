@@ -139,6 +139,7 @@ Falls back to plain `ls` (with equivalent flags) if `eza` is not installed.
 | `docker-clean` | Prune docker containers, images, networks, and volumes |
 | `sha1 <file>` | SHA1 checksum |
 | `hb <file>` | Upload a file to a hastebin paste (function) |
+| `mbu` | Pull the latest mybash from your fork and reload the shell (function) |
 
 ## Git (`git.bash`, `git-setup.sh`)
 
@@ -197,3 +198,6 @@ After running `./git-setup.sh` once, these **git subcommands** are also availabl
 | `Ctrl+f` | Launch `zi` (zoxide interactive directory jump) |
 | `Ctrl+r` | fzf-powered history search |
 | `Up` / `Down` | History search based on what you've already typed |
+| `Alt+a` | Start Claude Code in the current directory (`.bashrc`) |
+| `Alt+c` | Continue the last Claude Code conversation here (`.bashrc`; replaces fzf's folder jump) |
+| `Alt+r` | Pick a past Claude Code conversation to resume (`.bashrc`) |

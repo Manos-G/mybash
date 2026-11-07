@@ -380,3 +380,15 @@ function hb {
         echo "Failed to upload the document."
     fi
 }
+
+# mbu: pull the latest mybash from its git upstream and reload the shell.
+# --autostash keeps local uncommitted edits (e.g. lines installers add to .bashrc).
+mbu() {
+	local dir="${MYBASH_DIR:-$HOME/Documents/Github/mybash}"
+	echo "Updating mybash in $dir"
+	git -C "$dir" pull --rebase --autostash || {
+		echo "mybash update failed; nothing was reloaded."
+		return 1
+	}
+	source "$HOME/.bashrc" && echo "mybash updated and reloaded."
+}
