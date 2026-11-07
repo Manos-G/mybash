@@ -31,7 +31,9 @@
         },
         {
             "type": "display",
-            "key": "  󱄄"
+            "key": "  󱄄",
+            // No {inch}: the Samsung on HDMI reports a TV-sized panel (85")
+            "format": "{name}: {width}x{height} @ {refresh-rate} Hz"
         },
         {
             "type": "memory",
