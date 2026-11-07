@@ -56,3 +56,8 @@ unset module
 
 # Alt+A: launch Claude Code in the current directory
 bind -x '"\ea": claude'
+# Alt+C: continue the most recent Claude Code conversation here
+# (replaces fzf's Alt+C folder jump; use Ctrl+F / zi for that)
+bind -x '"\ec": claude --continue'
+# Alt+R: pick a past Claude Code conversation to resume
+bind -x '"\er": claude --resume'
