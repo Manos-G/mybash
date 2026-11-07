@@ -139,7 +139,7 @@ Falls back to plain `ls` (with equivalent flags) if `eza` is not installed.
 | `docker-clean` | Prune docker containers, images, networks, and volumes |
 | `sha1 <file>` | SHA1 checksum |
 | `hb <file>` | Upload a file to a hastebin paste (function) |
-| `mbu` | Pull the latest mybash from your fork and reload the shell (function) |
+| `bash_upgrade` | Pull the latest mybash, install anything new (`packages.txt`, tools, fonts, config links) and reload the shell (function) |
 
 ## Git (`git.bash`, `git-setup.sh`)
 

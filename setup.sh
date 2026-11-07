@@ -14,15 +14,24 @@ if [ ! -d "$LINUXTOOLBOXDIR" ]; then
     echo "${GREEN}linuxtoolbox directory created: $LINUXTOOLBOXDIR${RC}"
 fi
 
-if [ -d "$LINUXTOOLBOXDIR/mybash" ]; then rm -rf "$LINUXTOOLBOXDIR/mybash"; fi
+# --upgrade (used by bash_upgrade): work on this existing checkout instead of
+# re-cloning, skip first-time questions, and only install what is missing.
+UPGRADE=0
+if [ "$1" = "--upgrade" ]; then
+    UPGRADE=1
+fi
 
-echo "${YELLOW}Cloning mybash repository into: $LINUXTOOLBOXDIR/mybash${RC}"
-git clone git@github.com:Manos-G/mybash.git "$LINUXTOOLBOXDIR/mybash"
-if [ $? -eq 0 ]; then
-    echo "${GREEN}Successfully cloned mybash repository${RC}"
-else
-    echo "${RED}Failed to clone mybash repository${RC}"
-    exit 1
+if [ "$UPGRADE" -eq 0 ]; then
+    if [ -d "$LINUXTOOLBOXDIR/mybash" ]; then rm -rf "$LINUXTOOLBOXDIR/mybash"; fi
+
+    echo "${YELLOW}Cloning mybash repository into: $LINUXTOOLBOXDIR/mybash${RC}"
+    git clone git@github.com:Manos-G/mybash.git "$LINUXTOOLBOXDIR/mybash"
+    if [ $? -eq 0 ]; then
+        echo "${GREEN}Successfully cloned mybash repository${RC}"
+    else
+        echo "${RED}Failed to clone mybash repository${RC}"
+        exit 1
+    fi
 fi
 
 # add variables to top level so can easily be accessed by all functions
@@ -31,7 +40,11 @@ SUDO_CMD=""
 SUGROUP=""
 GITPATH=""
 
-cd "$LINUXTOOLBOXDIR/mybash" || exit
+if [ "$UPGRADE" -eq 1 ]; then
+    cd "$(dirname "$(realpath "$0")")" || exit
+else
+    cd "$LINUXTOOLBOXDIR/mybash" || exit
+fi
 
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -104,7 +117,25 @@ installDepend() {
         DEPENDENCIES="${DEPENDENCIES} neovim"
     fi
 
-    echo "${YELLOW}Installing dependencies...${RC}"
+    ## Extra apps listed in packages.txt (one package per line, # for comments).
+    if [ -f "$GITPATH/packages.txt" ]; then
+        DEPENDENCIES="${DEPENDENCIES} $(sed -e 's/#.*//' "$GITPATH/packages.txt" | tr '\n' ' ')"
+    fi
+
+    ## On apt/nala, only ask for the packages that aren't installed yet, so a
+    ## re-run with nothing new never needs sudo.
+    if [ "$PACKAGER" = "apt" ] || [ "$PACKAGER" = "nala" ]; then
+        MISSING=""
+        for pkg in $DEPENDENCIES; do
+            dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed" || MISSING="$MISSING $pkg"
+        done
+        DEPENDENCIES="$MISSING"
+    fi
+
+    if [ -z "$(echo $DEPENDENCIES)" ]; then
+        echo "All dependencies already installed"
+    else
+    echo "${YELLOW}Installing dependencies:${DEPENDENCIES}${RC}"
     if [ "$PACKAGER" = "pacman" ]; then
         if ! command_exists yay && ! command_exists paru; then
             echo "Installing yay as AUR helper..."
@@ -136,15 +167,21 @@ installDepend() {
     else
         ${SUDO_CMD} ${PACKAGER} install -yq ${DEPENDENCIES}
     fi
+    fi
 
-    # Check to see if the MesloLGS Nerd Font is installed (Change this to whatever font you would like)
-    FONT_NAME="MesloLGS Nerd Font Mono"
+    # MesloLGS is used by fastfetch, JetBrainsMono by the terminals (Yakuake, Ghostty)
+    installNerdFont "MesloLGS Nerd Font Mono" "Meslo"
+    installNerdFont "JetBrainsMono Nerd Font" "JetBrainsMono"
+}
+
+## installNerdFont <fc-list family name> <nerd-fonts release zip name>
+installNerdFont() {
+    FONT_NAME="$1"
     if fc-list :family | grep -iq "$FONT_NAME"; then
         echo "Font '$FONT_NAME' is installed."
     else
         echo "Installing font '$FONT_NAME'"
-        # Change this URL to correspond with the correct font
-        FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.zip"
+        FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$2.zip"
         FONT_DIR="$HOME/.local/share/fonts"
         # check if the file is accessible
         if wget -q --spider "$FONT_URL"; then
@@ -465,6 +502,10 @@ installRosTools() {
     ## colcon_cd powers the rpkg command; it comes from the ROS apt repository.
     case "$PACKAGER" in
         apt|nala)
+            if dpkg-query -W -f='${Status}' python3-colcon-cd 2>/dev/null | grep -q "install ok installed"; then
+                echo "colcon_cd already installed"
+                return
+            fi
             ${SUDO_CMD} ${PACKAGER} install -y python3-colcon-cd || \
                 echo "${YELLOW}python3-colcon-cd not installed; rpkg needs it once ROS 2 is set up${RC}"
             ;;
@@ -497,7 +538,10 @@ linkConfig() {
     USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
     ## Check if a bashrc file is already there.
     OLD_BASHRC="$USER_HOME/.bashrc"
-    if [ -e "$OLD_BASHRC" ]; then
+    ## Already linked to this checkout: nothing to back up.
+    if [ "$(readlink -f "$OLD_BASHRC")" = "$(readlink -f "$GITPATH/.bashrc")" ]; then
+        echo ".bashrc already linked to $GITPATH"
+    elif [ -e "$OLD_BASHRC" ]; then
         echo "${YELLOW}Moving old bash config file to $USER_HOME/.bashrc.bak${RC}"
         if ! mv "$OLD_BASHRC" "$USER_HOME/.bashrc.bak"; then
             echo "${RED}Can't move the old bash config file!${RC}"
@@ -505,11 +549,13 @@ linkConfig() {
         fi
     fi
 
-    echo "${YELLOW}Linking new bash config file...${RC}"
-    ln -svf "$GITPATH/.bashrc" "$USER_HOME/.bashrc" || {
-        echo "${RED}Failed to create symbolic link for .bashrc${RC}"
-        exit 1
-    }
+    if [ "$(readlink -f "$OLD_BASHRC")" != "$(readlink -f "$GITPATH/.bashrc")" ]; then
+        echo "${YELLOW}Linking new bash config file...${RC}"
+        ln -svf "$GITPATH/.bashrc" "$USER_HOME/.bashrc" || {
+            echo "${RED}Failed to create symbolic link for .bashrc${RC}"
+            exit 1
+        }
+    fi
     ln -svf "$GITPATH/starship.toml" "$USER_HOME/.config/starship.toml" || {
         echo "${RED}Failed to create symbolic link for starship.toml${RC}"
         exit 1
@@ -521,6 +567,12 @@ configureRosDomainId() {
     ## shell picks it up (ros2.bash sources ~/.ros_domain_id).
     USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
     ROS_ID_FILE="$USER_HOME/.ros_domain_id"
+
+    ## Only asked on a fresh setup; use `rosid` to change it later.
+    if [ "$UPGRADE" -eq 1 ]; then
+        echo "Skipping ROS_DOMAIN_ID question (upgrade)"
+        return
+    fi
 
     printf "%bSelect your permanent ROS_DOMAIN_ID [0-232, default 0]: %b" "$YELLOW" "$RC"
     read -r ROS_DOMAIN_ID_INPUT || ROS_DOMAIN_ID_INPUT=""
@@ -554,7 +606,11 @@ installRosTools
 create_fastfetch_config
 
 if linkConfig; then
-    echo "${GREEN}Done!\nrestart your shell to see the changes.${RC}"
+    if [ "$UPGRADE" -eq 1 ]; then
+        echo "${GREEN}mybash upgrade done.${RC}"
+    else
+        echo "${GREEN}Done!\nrestart your shell to see the changes.${RC}"
+    fi
 else
     echo "${RED}Something went wrong!${RC}"
 fi

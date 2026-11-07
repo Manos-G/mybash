@@ -381,14 +381,19 @@ function hb {
     fi
 }
 
-# mbu: pull the latest mybash from its git upstream and reload the shell.
-# --autostash keeps local uncommitted edits (e.g. lines installers add to .bashrc).
-mbu() {
+# bash_upgrade: pull the latest mybash, install anything new (setup.sh --upgrade:
+# missing packages from packages.txt and setup.sh, fonts, tools, config links),
+# then reload the shell. --autostash keeps local uncommitted edits.
+bash_upgrade() {
 	local dir="${MYBASH_DIR:-$HOME/Documents/Github/mybash}"
 	echo "Updating mybash in $dir"
 	git -C "$dir" pull --rebase --autostash || {
-		echo "mybash update failed; nothing was reloaded."
+		echo "mybash pull failed; nothing was installed or reloaded."
 		return 1
 	}
-	source "$HOME/.bashrc" && echo "mybash updated and reloaded."
+	"$dir/setup.sh" --upgrade || {
+		echo "mybash setup failed; see the output above."
+		return 1
+	}
+	source "$HOME/.bashrc" && echo "mybash upgraded and reloaded."
 }

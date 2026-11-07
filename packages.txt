@@ -1,0 +1,4 @@
+# Extra apps for setup.sh / bash_upgrade to install with the system package
+# manager (apt on Ubuntu). One package name per line; # starts a comment.
+# Already-installed packages are skipped, so adding a line and running
+# bash_upgrade installs just that app.
