@@ -239,6 +239,65 @@ installYakuake() {
     esac
 }
 
+## Yakuake look: JetBrains profile (linked from the repo), ROUNDED-DARK skin and
+## the Meta+` shortcut. Settings are only written when not already set, so
+## changes made later in the Yakuake GUI are kept.
+installYakuakeConfig() {
+    if ! command_exists yakuake; then
+        return
+    fi
+    if command_exists kwriteconfig6; then
+        KWRITE=kwriteconfig6; KREAD=kreadconfig6
+    elif command_exists kwriteconfig5; then
+        KWRITE=kwriteconfig5; KREAD=kreadconfig5
+    else
+        echo "${YELLOW}kwriteconfig not found, skipping Yakuake settings${RC}"
+        return
+    fi
+    USER_HOME=$(getent passwd "${SUDO_USER:-$USER}" | cut -d: -f6)
+
+    ## Profile: link to the repo copy, unless a different local one exists.
+    PROFILE_DIR="$USER_HOME/.local/share/konsole"
+    PROFILE="$PROFILE_DIR/JetBrains.profile"
+    mkdir -p "$PROFILE_DIR"
+    if [ "$(readlink -f "$PROFILE")" = "$(readlink -f "$GITPATH/yakuake/JetBrains.profile")" ]; then
+        echo "Yakuake profile already linked"
+    elif [ -e "$PROFILE" ] && ! cmp -s "$PROFILE" "$GITPATH/yakuake/JetBrains.profile"; then
+        echo "${YELLOW}$PROFILE differs from the repo copy, leaving it alone${RC}"
+    else
+        ln -svf "$GITPATH/yakuake/JetBrains.profile" "$PROFILE"
+    fi
+
+    ## Skin: copy if missing.
+    SKIN_DIR="$USER_HOME/.local/share/yakuake/kns_skins"
+    if [ ! -d "$SKIN_DIR/ROUNDED-DARK" ]; then
+        mkdir -p "$SKIN_DIR"
+        cp -r "$GITPATH/yakuake/skins/ROUNDED-DARK" "$SKIN_DIR/"
+        echo "Installed Yakuake skin ROUNDED-DARK"
+    fi
+
+    ## yakuakerc keys, only if unset.
+    setYakuakeKey() {
+        if [ -z "$($KREAD --file yakuakerc --group "$1" --key "$2")" ]; then
+            $KWRITE --file yakuakerc --group "$1" --key "$2" "$3"
+        fi
+    }
+    setYakuakeKey "Desktop Entry" DefaultProfile JetBrains.profile
+    setYakuakeKey Appearance Skin ROUNDED-DARK
+    setYakuakeKey Appearance SkinInstalledWithKns true
+    setYakuakeKey Window Height 100
+
+    ## Shortcut Meta+` (keeping F12), unless it was already customised.
+    CURRENT=$($KREAD --file kglobalshortcutsrc --group yakuake --key toggle-window-state)
+    case "$CURRENT" in
+        ""|F12,*)
+            $KWRITE --file kglobalshortcutsrc --group yakuake --key toggle-window-state "Meta+\`,F12,Open/Retract Yakuake"
+            echo "Yakuake shortcut set to Meta+\` (applies after logging in again)"
+            ;;
+    esac
+    echo "Yakuake config done (restart Yakuake to see changes)"
+}
+
 installYazi() {
     if command_exists yazi; then
         echo "Yazi already installed"
@@ -604,6 +663,7 @@ installZoxide
 install_additional_dependencies
 installRosTools
 create_fastfetch_config
+installYakuakeConfig
 
 if linkConfig; then
     if [ "$UPGRADE" -eq 1 ]; then
