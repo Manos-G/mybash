@@ -455,6 +455,55 @@ installLazygit() {
     rm -rf "$TEMP_DIR"
 }
 
+## Filee (github.com/KnifeLemon/Filee): offline file converter. Installed per
+## user by its own install.sh (no root); after that it updates itself, so this
+## only runs when it's missing.
+installFilee() {
+    if [ -d "$HOME/.local/share/filee/application" ] || command_exists filee; then
+        echo "Filee already installed"
+        return
+    fi
+
+    case "$(uname -m)" in
+        x86_64)          FILEE_ARCH="x64" ;;
+        aarch64|arm64)   FILEE_ARCH="arm64" ;;
+        *)
+            echo "${YELLOW}Filee has no Linux build for $(uname -m), skipping${RC}"
+            return
+            ;;
+    esac
+
+    echo "${YELLOW}Installing Filee...${RC}"
+    FILEE_VERSION=$(curl -s "https://api.github.com/repos/KnifeLemon/Filee/releases/latest" | grep -Po '"tag_name": "v\K[^"]*' || true)
+    if [ -z "$FILEE_VERSION" ]; then
+        echo "${RED}Could not find the latest Filee release, skipping${RC}"
+        return
+    fi
+    FILEE_BASE="https://github.com/KnifeLemon/Filee/releases/download/v${FILEE_VERSION}"
+    FILEE_TAR="Filee-${FILEE_VERSION}-linux-${FILEE_ARCH}.tar.gz"
+    TEMP_DIR=$(mktemp -d)
+    if ! curl -fL --progress-bar -o "$TEMP_DIR/$FILEE_TAR" "$FILEE_BASE/$FILEE_TAR" \
+        || ! curl -fsL -o "$TEMP_DIR/SHA256SUMS.txt" "$FILEE_BASE/Filee-${FILEE_VERSION}-linux-${FILEE_ARCH}-SHA256SUMS.txt"; then
+        echo "${RED}Filee download failed, skipping${RC}"
+        rm -rf "$TEMP_DIR"
+        return
+    fi
+    if ! (cd "$TEMP_DIR" && grep " $FILEE_TAR\$" SHA256SUMS.txt | sha256sum -c --quiet -); then
+        echo "${RED}Filee checksum mismatch, not installing${RC}"
+        rm -rf "$TEMP_DIR"
+        return
+    fi
+    mkdir "$TEMP_DIR/x"
+    tar -xzf "$TEMP_DIR/$FILEE_TAR" -C "$TEMP_DIR/x"
+    FILEE_INSTALLER=$(find "$TEMP_DIR/x" -maxdepth 2 -name install.sh | head -n 1)
+    if [ -n "$FILEE_INSTALLER" ]; then
+        sh "$FILEE_INSTALLER" || echo "${RED}Filee install.sh failed${RC}"
+    else
+        echo "${RED}Filee package has no install.sh, skipping${RC}"
+    fi
+    rm -rf "$TEMP_DIR"
+}
+
 installLazydocker() {
     if command_exists lazydocker; then
         echo "Lazydocker already installed"
@@ -658,6 +707,7 @@ installYazi
 installEza
 installLazygit
 installLazydocker
+installFilee
 installStarshipAndFzf
 installZoxide
 install_additional_dependencies
