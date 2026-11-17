@@ -54,6 +54,7 @@ open an fzf list: type to filter, Enter to choose.
 | `hlp` / `rh` | Print all commands / the ROS 2 commands |
 | `z <name>` / `zi` / `Ctrl+f` | Jump to a frequent folder / pick one |
 | `Ctrl+r` | Search command history with fzf |
+| `Tab` | Pick a completion from an fzf list |
 | `up <n>` | Go up `n` directories |
 | `extract <file>` | Unpack almost any archive |
 | `gcom "msg"` / `lazyg "msg"` | Add and commit / add, commit and push |

@@ -197,6 +197,7 @@ After running `./git-setup.sh` once, these **git subcommands** are also availabl
 | --- | --- |
 | `Ctrl+f` | Launch `zi` (zoxide interactive directory jump) |
 | `Ctrl+r` | fzf-powered history search |
+| `Tab` | Show completions in an fzf menu (fzf-tab-completion) |
 | `Up` / `Down` | History search based on what you've already typed |
 | `Alt+a` | Start Claude Code in the current directory (`.bashrc`) |
 | `Alt+c` | Continue the last Claude Code conversation here (`.bashrc`; replaces fzf's folder jump) |
