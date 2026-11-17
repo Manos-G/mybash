@@ -51,6 +51,13 @@ elif [ -f ~/.fzf.bash ]; then
     source ~/.fzf.bash
 fi
 
+# Show Tab completions in an fzf menu (github.com/lincheney/fzf-tab-completion)
+if [[ $- == *i* ]] && command -v fzf >/dev/null 2>&1 &&
+	[ -f ~/.local/share/fzf-tab-completion/bash/fzf-bash-completion.sh ]; then
+	source ~/.local/share/fzf-tab-completion/bash/fzf-bash-completion.sh
+	bind -x '"\t": fzf_bash_completion'
+fi
+
 # Print a help reminder in every new terminal, and again when entering a git repo
 _mybash_help_line() {
 	echo -e "\e[1;33mHelp: rh (ROS 2 commands) | hlp (all commands)\e[0m"

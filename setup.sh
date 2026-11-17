@@ -531,6 +531,23 @@ installStarshipAndFzf() {
     fi
 }
 
+## fzf-tab-completion: shows Tab completions in an fzf menu. Cloned per
+## user (no root); an existing clone is updated instead.
+installFzfTabCompletion() {
+    FZF_TAB_DIR="$HOME/.local/share/fzf-tab-completion"
+    if [ -d "$FZF_TAB_DIR/.git" ]; then
+        echo "fzf-tab-completion already installed, updating..."
+        git -C "$FZF_TAB_DIR" pull --ff-only --quiet || echo "${RED}Could not update fzf-tab-completion${RC}"
+        return
+    fi
+
+    echo "${YELLOW}Installing fzf-tab-completion...${RC}"
+    mkdir -p "$HOME/.local/share"
+    if ! git clone --depth 1 https://github.com/lincheney/fzf-tab-completion.git "$FZF_TAB_DIR"; then
+        echo "${RED}fzf-tab-completion install failed${RC}"
+    fi
+}
+
 installZoxide() {
     if command_exists zoxide; then
         echo "Zoxide already installed"
@@ -709,6 +726,7 @@ installLazygit
 installLazydocker
 installFilee
 installStarshipAndFzf
+installFzfTabCompletion
 installZoxide
 install_additional_dependencies
 installRosTools
