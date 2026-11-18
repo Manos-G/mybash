@@ -54,8 +54,17 @@ fi
 # Show Tab completions in an fzf menu (github.com/lincheney/fzf-tab-completion)
 if [[ $- == *i* ]] && command -v fzf >/dev/null 2>&1 &&
 	[ -f ~/.local/share/fzf-tab-completion/bash/fzf-bash-completion.sh ]; then
+	# Load and run it with aliases off: aliases.bash changes cat, grep and ps,
+	# which breaks the plugin's own commands
+	shopt -u expand_aliases
 	source ~/.local/share/fzf-tab-completion/bash/fzf-bash-completion.sh
-	bind -x '"\t": fzf_bash_completion'
+	shopt -s expand_aliases
+	_mybash_fzf_tab() {
+		shopt -u expand_aliases
+		fzf_bash_completion
+		shopt -s expand_aliases
+	}
+	bind -x '"\t": _mybash_fzf_tab'
 fi
 
 # Print a help reminder in every new terminal, and again when entering a git repo
